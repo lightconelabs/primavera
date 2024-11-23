@@ -1,4 +1,5 @@
-use leptos::*;
+use leptos::prelude::*;
+use leptos::prelude::CustomAttribute;
 
 fn main() {
     console_error_panic_hook::set_once();
@@ -17,7 +18,7 @@ fn App() -> impl IntoView {
                 xmlns:dc="http://purl.org/dc/elements/1.1/"
                 xmlns:svg="http://www.w3.org/2000/svg"
                 id="svg3033"
-                viewBox="0 0 744.09 1052.4"
+                viewBox="500 0 744.09 1052.4"
                 version="1.1"
                 width=2000
                 height=200
