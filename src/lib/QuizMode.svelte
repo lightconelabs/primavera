@@ -146,6 +146,7 @@
 
 			if (isNoteMatch(detectedMidi, expected.midi)) {
 				feedback = 'correct';
+				gaugeOffset = 0;
 				score++;
 				streak++;
 				if (streak > bestStreak) bestStreak = streak;
