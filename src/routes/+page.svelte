@@ -45,17 +45,10 @@
 
 		const seq = playSequence(
 			exercise.notes.map((n) => ({ midi: n.midi, duration: n.duration })),
-			exercise.tempo
+			exercise.tempo,
+			(index) => { highlightIndex = index; }
 		);
 		abortPlayback = seq.abort;
-
-		// Animate highlight
-		const beatDuration = 60 / exercise.tempo;
-		for (let i = 0; i < exercise.notes.length; i++) {
-			if (!isPlaying) break;
-			highlightIndex = i;
-			await new Promise((r) => setTimeout(r, exercise!.notes[i].duration * beatDuration * 1000));
-		}
 
 		await seq.promise;
 		highlightIndex = -1;

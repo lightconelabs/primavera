@@ -61,11 +61,13 @@ export function playNote(midi: number, durationSec: number = 0.5): Promise<void>
 
 /**
  * Play a sequence of MIDI notes at a given tempo (BPM, quarter note = 1 beat).
+ * Calls onNote(index) as each note starts playing, so the UI stays in sync.
  * Returns an abort controller that can cancel playback.
  */
 export function playSequence(
 	notes: { midi: number; duration: number }[],
-	tempo: number
+	tempo: number,
+	onNote?: (index: number) => void
 ): { promise: Promise<void>; abort: () => void } {
 	let aborted = false;
 
@@ -74,8 +76,10 @@ export function playSequence(
 	};
 
 	const promise = (async () => {
-		for (const note of notes) {
+		for (let i = 0; i < notes.length; i++) {
 			if (aborted) break;
+			const note = notes[i];
+			onNote?.(i);
 			const beatDuration = 60 / tempo;
 			const noteDuration = note.duration * beatDuration;
 			await playNote(note.midi, noteDuration * 0.9); // slight gap between notes
