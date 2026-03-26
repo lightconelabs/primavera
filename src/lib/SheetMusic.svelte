@@ -22,7 +22,6 @@
 		const abc = exerciseToAbc(exercise);
 		const result = abcjs.renderAbc(containerEl, abc, {
 			add_classes: true,
-			responsive: 'resize',
 			staffwidth: Math.max(500, exercise.notes.length * 40),
 			paddingtop: 0,
 			paddingbottom: 0,
@@ -73,6 +72,11 @@
 <style>
 	.sheet-music-container {
 		width: 100%;
+	}
+
+	.sheet-music-container :global(svg) {
+		display: block;
+		margin: 0 auto;
 	}
 
 	.sheet-music-container :global(.abcjs-note:hover path),
