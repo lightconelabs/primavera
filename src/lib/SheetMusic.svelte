@@ -31,9 +31,13 @@
 			staffwidth,
 			paddingtop: 0,
 			paddingbottom: 0,
-			clickListener: (abcElem) => {
-				if (abcElem.midiPitches && abcElem.midiPitches.length > 0) {
-					playNote(abcElem.midiPitches[0].pitch, 0.4);
+			clickListener: (_abcElem, _tuneNumber, classes) => {
+				const match = classes.match(/abcjs-n(\d+)/);
+				if (match) {
+					const noteIndex = parseInt(match[1], 10);
+					if (exercise.notes[noteIndex]) {
+						playNote(exercise.notes[noteIndex].midi, 0.4);
+					}
 				}
 			}
 		});
