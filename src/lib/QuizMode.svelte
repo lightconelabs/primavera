@@ -112,8 +112,10 @@
 
 		const expected = exercise.notes[currentIndex];
 		if (expected) {
-			const expectedFreq = midiToFrequency(expected.midi);
-			const centsFromExpected = 1200 * Math.log2(frequency / expectedFreq);
+			// Find the closest octave of the expected note to what was sung
+			const octaveShift = Math.round((exactMidi - expected.midi) / 12) * 12;
+			const nearestExpectedFreq = midiToFrequency(expected.midi + octaveShift);
+			const centsFromExpected = 1200 * Math.log2(frequency / nearestExpectedFreq);
 			const raw = Math.max(-1, Math.min(1, centsFromExpected / 100));
 			// Smooth with exponential moving average to reduce jitter
 			gaugeOffset = gaugeOffset * 0.6 + raw * 0.4;
