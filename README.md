@@ -5,6 +5,8 @@
 
 Primavera is an online tool for practicing sight-reading and sight-singing.
 
+![Primavera demo](assets/demo.gif)
+
 ## Features
 
 - Randomly generated sight-reading exercises rendered as SVG sheet music

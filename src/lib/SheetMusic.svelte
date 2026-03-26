@@ -120,7 +120,7 @@
 	role="img"
 	aria-label="Sheet music exercise"
 >
-	<!-- Staff lines -->
+	<!-- Staff lines (pointer-events disabled so notes remain hoverable) -->
 	{#each [0, 1, 2, 3, 4] as lineIdx}
 		<line
 			x1="30"
@@ -129,6 +129,7 @@
 			y2={STAFF_TOP + lineIdx * LINE_SPACING}
 			stroke="#333"
 			stroke-width="1"
+			pointer-events="none"
 		/>
 	{/each}
 
@@ -160,6 +161,7 @@
 				y2={STAFF_TOP + STAFF_HEIGHT}
 				stroke="#333"
 				stroke-width="1"
+				pointer-events="none"
 			/>
 		{/if}
 	{/each}
@@ -172,6 +174,7 @@
 		y2={STAFF_TOP + STAFF_HEIGHT}
 		stroke="#333"
 		stroke-width="1.5"
+		pointer-events="none"
 	/>
 	<line
 		x1={svgWidth() - 22}
@@ -180,6 +183,7 @@
 		y2={STAFF_TOP + STAFF_HEIGHT}
 		stroke="#333"
 		stroke-width="3"
+		pointer-events="none"
 	/>
 
 	<!-- Notes -->
