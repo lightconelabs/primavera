@@ -1,9 +1,9 @@
 <script lang="ts">
 	import type { Exercise, Note, NoteName } from './music';
-	import { noteToStaffPosition } from './music';
+	import { noteToStaffPosition, getKeySignatureNotes } from './music';
 	import { playNote } from './audio';
 
-	// Re-export constants needed for key signature rendering
+	// Constants for key signature rendering
 	const SHARP_ORDER_NOTES: NoteName[] = ['F', 'C', 'G', 'D', 'A', 'E', 'B'];
 	const FLAT_ORDER_NOTES: NoteName[] = ['B', 'E', 'A', 'D', 'G', 'C', 'F'];
 
@@ -102,6 +102,13 @@
 
 	function noteX(index: number): number {
 		return NOTE_START_X + keySignatureWidth() + index * NOTE_SPACING;
+	}
+
+	/** Check if a note's accidental is already covered by the key signature */
+	function isAccidentalInKeySignature(note: Note): boolean {
+		if (!note.accidental) return false;
+		const keySigNotes = getKeySignatureNotes(exercise.sharps, exercise.flats);
+		return keySigNotes.has(note.name);
 	}
 </script>
 
@@ -237,23 +244,15 @@
 				/>
 			{/if}
 
-			<!-- Accidental (only show if not in key signature) -->
-			{#if note.accidental === 'sharp'}
+			<!-- Accidental (only show if NOT already in key signature) -->
+			{#if note.accidental && !isAccidentalInKeySignature(note)}
 				<text
 					x={cx - 15}
 					y={cy + 5}
 					font-size="14"
 					font-family="serif"
 					fill={isHighlighted ? '#e74c3c' : '#333'}
-				>♯</text>
-			{:else if note.accidental === 'flat'}
-				<text
-					x={cx - 14}
-					y={cy + 5}
-					font-size="14"
-					font-family="serif"
-					fill={isHighlighted ? '#e74c3c' : '#333'}
-				>♭</text>
+				>{note.accidental === 'sharp' ? '♯' : '♭'}</text>
 			{/if}
 		</g>
 	{/each}
