@@ -22,6 +22,7 @@
   },
   "type": "module",
   "dependencies": {
+    "abcjs": "^6.6.2",
     "wrangler": "^4.77.0"
   }
 }
