@@ -20,7 +20,7 @@
 	function render() {
 		if (!containerEl) return;
 
-		const abc = exerciseToAbc(exercise);
+		const { abc, noteCharPositions } = exerciseToAbc(exercise);
 		const staffwidth = Math.max(500, exercise.notes.length * 40);
 		// Set max-width so the container centers at the natural staff width
 		// while responsive:'resize' still allows it to shrink on mobile
@@ -31,13 +31,10 @@
 			staffwidth,
 			paddingtop: 0,
 			paddingbottom: 0,
-			clickListener: (_abcElem, _tuneNumber, classes) => {
-				const match = classes.match(/abcjs-n(\d+)/);
-				if (match) {
-					const noteIndex = parseInt(match[1], 10);
-					if (exercise.notes[noteIndex]) {
-						playNote(exercise.notes[noteIndex].midi, 0.4);
-					}
+			clickListener: (abcElem) => {
+				const noteIndex = noteCharPositions.get(abcElem.startChar);
+				if (noteIndex !== undefined && exercise.notes[noteIndex]) {
+					playNote(exercise.notes[noteIndex].midi, 0.4);
 				}
 			}
 		});

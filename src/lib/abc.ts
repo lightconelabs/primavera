@@ -71,8 +71,16 @@ function noteToAbc(note: Note, keySigNotes: Set<NoteName>, isSharps: boolean): s
 	return abc;
 }
 
-/** Convert a full Exercise to an ABC notation string */
-export function exerciseToAbc(exercise: Exercise): string {
+/** Result of converting an exercise to ABC notation */
+export interface AbcResult {
+	/** The ABC notation string */
+	abc: string;
+	/** Map from ABC character position to exercise note index */
+	noteCharPositions: Map<number, number>;
+}
+
+/** Convert a full Exercise to an ABC notation string with character position mapping */
+export function exerciseToAbc(exercise: Exercise): AbcResult {
 	const key =
 		exercise.sharps > 0 ? SHARP_KEYS[exercise.sharps] : FLAT_KEYS[exercise.flats];
 
@@ -81,19 +89,28 @@ export function exerciseToAbc(exercise: Exercise): string {
 
 	const abcNotes = exercise.notes.map((n) => noteToAbc(n, keySigNotes, isSharps));
 
-	// Group into bars of 4 (based on time signature)
-	const beatsPerBar = exercise.timeSignatureTop;
-	const bars: string[] = [];
-	for (let i = 0; i < abcNotes.length; i += beatsPerBar) {
-		bars.push(abcNotes.slice(i, i + beatsPerBar).join(' '));
-	}
-
-	return [
+	const header = [
 		'X:1',
 		`M:${exercise.timeSignatureTop}/${exercise.timeSignatureBottom}`,
 		'L:1/4',
 		`Q:1/4=${exercise.tempo}`,
-		`K:${key}`,
-		bars.join(' | ') + ' |]'
-	].join('\n');
+		`K:${key}`
+	].join('\n') + '\n';
+
+	const beatsPerBar = exercise.timeSignatureTop;
+	const noteCharPositions = new Map<number, number>();
+	let noteLine = '';
+
+	for (let i = 0; i < abcNotes.length; i++) {
+		if (i > 0 && i % beatsPerBar === 0) {
+			noteLine += ' | ';
+		} else if (i > 0) {
+			noteLine += ' ';
+		}
+		noteCharPositions.set(header.length + noteLine.length, i);
+		noteLine += abcNotes[i];
+	}
+	noteLine += ' |]';
+
+	return { abc: header + noteLine, noteCharPositions };
 }
