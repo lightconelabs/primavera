@@ -83,10 +83,10 @@ await newExBtn.click();
 await page.waitForTimeout(1500);
 
 // --- Scene 5: Hover over notes to show highlight ---
-const noteGroups = page.locator('.note-group');
-const count = await noteGroups.count();
+const noteEls = page.locator('.abcjs-note');
+const count = await noteEls.count();
 for (let i = 0; i < Math.min(8, count); i++) {
-	await noteGroups.nth(i).hover({ force: true, timeout: 3000 });
+	await noteEls.nth(i).hover({ force: true, timeout: 3000 });
 	await page.waitForTimeout(500);
 }
 
