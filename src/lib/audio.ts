@@ -17,6 +17,17 @@ function getAudioContext(): AudioContext {
 }
 
 /**
+ * Unlock the AudioContext on first user interaction.
+ * Mobile browsers require AudioContext creation/resume within a direct gesture.
+ */
+export function unlockAudio(): void {
+	const ctx = getAudioContext();
+	if (ctx.state === 'suspended') {
+		ctx.resume();
+	}
+}
+
+/**
  * Play a single MIDI note with a piano-like envelope.
  * Returns a promise that resolves when the note finishes.
  */
