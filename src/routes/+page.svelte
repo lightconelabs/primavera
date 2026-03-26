@@ -4,11 +4,13 @@
 	import { m } from '$lib/paraglide/messages.js';
 	import { localizeHref, getLocale, locales } from '$lib/paraglide/runtime.js';
 	import SheetMusic from '$lib/SheetMusic.svelte';
+	import QuizMode from '$lib/QuizMode.svelte';
 	import { generateExercise, type Exercise, type ExerciseSettings, DEFAULT_SETTINGS } from '$lib/music';
 	import { playSequence } from '$lib/audio';
 	import { loadSettings, saveSettings } from '$lib/store';
 
 	let settings: ExerciseSettings = $state({ ...DEFAULT_SETTINGS });
+	let mode: 'practice' | 'quiz' = $state('practice');
 	let exercise: Exercise | null = $state(null);
 	let highlightIndex = $state(-1);
 	let isPlaying = $state(false);
@@ -119,20 +121,46 @@
 			<div class="sheet-scroll">
 				<SheetMusic {exercise} {highlightIndex} />
 			</div>
+			<div class="mode-toggle">
+				<button
+					class="toggle-btn"
+					class:active={mode === 'practice'}
+					onclick={() => { mode = 'practice'; stopPlayback(); highlightIndex = -1; }}
+				>
+					{m.practice_mode()}
+				</button>
+				<button
+					class="toggle-btn"
+					class:active={mode === 'quiz'}
+					onclick={() => { mode = 'quiz'; stopPlayback(); highlightIndex = -1; }}
+				>
+					{m.quiz_mode()}
+				</button>
+			</div>
 			<div class="actions">
 				<button class="btn primary" onclick={generate}>
 					{m.new_exercise()}
 				</button>
-				{#if isPlaying}
-					<button class="btn danger" onclick={stopPlayback}>
-						{m.stop()}
-					</button>
-				{:else}
-					<button class="btn secondary" onclick={play}>
-						▶ {m.play()}
-					</button>
-				{/if}
 			</div>
+			{#if mode === 'practice'}
+				<div class="actions">
+					{#if isPlaying}
+						<button class="btn danger" onclick={stopPlayback}>
+							{m.stop()}
+						</button>
+					{:else}
+						<button class="btn secondary" onclick={play}>
+							▶ {m.play()}
+						</button>
+					{/if}
+				</div>
+			{:else}
+				<QuizMode
+					{exercise}
+					onComplete={(finalScore) => {}}
+					onNoteChange={(index) => { highlightIndex = index; }}
+				/>
+			{/if}
 		{/if}
 	</section>
 
@@ -298,6 +326,38 @@
 	.sheet-scroll {
 		display: flex;
 		justify-content: center;
+	}
+
+	.mode-toggle {
+		display: flex;
+		justify-content: center;
+		gap: 2px;
+		padding: 0.5rem 0;
+	}
+
+	.toggle-btn {
+		padding: 0.35rem 1rem;
+		border: 1px solid #e8e5e0;
+		background: transparent;
+		font-size: 0.75rem;
+		font-weight: 500;
+		cursor: pointer;
+		color: #888;
+		transition: all 0.15s;
+	}
+
+	.toggle-btn:first-child {
+		border-radius: 6px 0 0 6px;
+	}
+
+	.toggle-btn:last-child {
+		border-radius: 0 6px 6px 0;
+	}
+
+	.toggle-btn.active {
+		background: #4a2c6a;
+		color: white;
+		border-color: #4a2c6a;
 	}
 
 	.actions {
