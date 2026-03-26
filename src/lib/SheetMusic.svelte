@@ -82,14 +82,28 @@
 		margin: 0 auto;
 	}
 
+	/* Staff lines: warm dark tone instead of pure black */
+	.sheet-music-container :global(svg) {
+		overflow: visible;
+	}
+
+	.sheet-music-container :global(.abcjs-staff path),
+	.sheet-music-container :global(.abcjs-staff-extra path) {
+		stroke: #3a3530;
+	}
+
+	/* Note hover: aubergine accent */
 	.sheet-music-container :global(.abcjs-note:hover path),
 	.sheet-music-container :global(.abcjs-note:hover circle) {
-		fill: #3498db !important;
+		fill: #5a3478 !important;
 		cursor: pointer;
 	}
 
+	/* Active/highlighted note: warm rose with glow */
 	.sheet-music-container :global(.abcjs-note.abcjs-highlight path),
 	.sheet-music-container :global(.abcjs-note.abcjs-highlight circle) {
-		fill: #e74c3c !important;
+		fill: #c4687a !important;
+		filter: drop-shadow(0 0 4px rgba(196, 104, 122, 0.35));
+		transition: fill 0.15s ease;
 	}
 </style>

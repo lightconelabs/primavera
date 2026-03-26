@@ -178,24 +178,40 @@
 	{/if}
 
 	{#if !active && !completed}
-		<button class="quiz-btn quiz-start" onclick={start}>
-			{m.quiz_start()}
-		</button>
+		<div class="quiz-idle">
+			<button class="quiz-btn quiz-start" onclick={start}>
+				<span class="mic-icon">&#9835;</span>
+				{m.quiz_start()}
+			</button>
+		</div>
 	{:else if active && !completed}
 		<div class="quiz-active">
-			<p class="quiz-instruction">{m.quiz_listen()}</p>
-
-			<div class="quiz-stats">
-				<span class="quiz-score">{m.quiz_score({ correct: String(score), total: String(exercise.notes.length) })}</span>
-				<span class="quiz-streak">{m.quiz_streak({ count: String(streak) })}</span>
-				<span class="quiz-best">{m.quiz_best_streak({ count: String(bestStreak) })}</span>
+			<div class="listening-badge">
+				<span class="pulse-dot"></span>
+				<span class="listening-text">{m.quiz_listen()}</span>
 			</div>
 
-			{#if feedback === 'correct'}
-				<p class="quiz-feedback correct">{m.quiz_correct()}</p>
-			{:else if feedback === 'wrong'}
-				<p class="quiz-feedback wrong">{m.quiz_wrong()}</p>
-			{/if}
+			<div class="quiz-stats">
+				<div class="stat-pill">
+					<span class="stat-value">{score}<span class="stat-sep">/</span>{exercise.notes.length}</span>
+				</div>
+				<div class="stat-pill streak">
+					<span class="stat-value">{streak}</span>
+				</div>
+				<div class="stat-pill best">
+					<span class="stat-value">{bestStreak}</span>
+				</div>
+			</div>
+
+			<div class="feedback-zone">
+				{#if feedback === 'correct'}
+					<p class="quiz-feedback correct">{m.quiz_correct()}</p>
+				{:else if feedback === 'wrong'}
+					<p class="quiz-feedback wrong">{m.quiz_wrong()}</p>
+				{:else}
+					<p class="quiz-feedback placeholder">&nbsp;</p>
+				{/if}
+			</div>
 
 			{#if detectedNoteName}
 				<p class="quiz-detected">{m.quiz_detected_note({ note: detectedNoteName })}</p>
@@ -212,10 +228,17 @@
 		</div>
 	{:else if completed}
 		<div class="quiz-complete">
+			<div class="complete-badge">
+				<span class="complete-check">&#10003;</span>
+			</div>
 			<p class="quiz-complete-msg">{m.quiz_complete()}</p>
 			<div class="quiz-stats">
-				<span class="quiz-score">{m.quiz_score({ correct: String(score), total: String(exercise.notes.length) })}</span>
-				<span class="quiz-best">{m.quiz_best_streak({ count: String(bestStreak) })}</span>
+				<div class="stat-pill">
+					<span class="stat-value">{score}<span class="stat-sep">/</span>{exercise.notes.length}</span>
+				</div>
+				<div class="stat-pill best">
+					<span class="stat-value">{bestStreak}</span>
+				</div>
 			</div>
 			<button class="quiz-btn quiz-start" onclick={start}>
 				{m.quiz_start()}
@@ -229,13 +252,21 @@
 		display: flex;
 		flex-direction: column;
 		align-items: center;
-		gap: 0.75rem;
-		padding: 1rem;
+		gap: 0.5rem;
+		padding: 0.75rem 1rem 1rem;
 	}
 
 	.quiz-error {
-		color: var(--color-error, #d32f2f);
+		color: #b33326;
+		font-size: 0.85rem;
 		font-weight: 500;
+		background: rgba(179, 51, 38, 0.06);
+		padding: 0.5rem 0.85rem;
+		border-radius: 8px;
+	}
+
+	.quiz-idle {
+		padding: 0.5rem 0;
 	}
 
 	.quiz-active,
@@ -243,77 +274,247 @@
 		display: flex;
 		flex-direction: column;
 		align-items: center;
-		gap: 0.75rem;
+		gap: 0.65rem;
 		width: 100%;
 	}
 
-	.quiz-instruction {
-		font-size: 1.1rem;
-		font-weight: 500;
+	/* ---- Listening badge ---- */
+
+	.listening-badge {
+		display: flex;
+		align-items: center;
+		gap: 0.45rem;
+		padding: 0.3rem 0.75rem;
+		background: rgba(61, 32, 85, 0.06);
+		border-radius: 20px;
 	}
+
+	.pulse-dot {
+		width: 8px;
+		height: 8px;
+		border-radius: 50%;
+		background: #c4687a;
+		animation: pulse 1.8s ease-in-out infinite;
+	}
+
+	@keyframes pulse {
+		0%, 100% { opacity: 0.4; transform: scale(0.85); }
+		50% { opacity: 1; transform: scale(1.15); }
+	}
+
+	.listening-text {
+		font-size: 0.78rem;
+		font-weight: 600;
+		color: #3d2055;
+		letter-spacing: 0.03em;
+	}
+
+	/* ---- Stats pills ---- */
 
 	.quiz-stats {
 		display: flex;
-		gap: 1.5rem;
-		font-size: 0.95rem;
+		gap: 0.5rem;
+	}
+
+	.stat-pill {
+		display: flex;
+		align-items: center;
+		gap: 0.3rem;
+		padding: 0.25rem 0.65rem;
+		background: rgba(61, 32, 85, 0.05);
+		border-radius: 8px;
+	}
+
+	.stat-value {
+		font-size: 0.85rem;
+		font-weight: 700;
+		color: #3d2055;
+	}
+
+	.stat-sep {
+		opacity: 0.35;
+		font-weight: 400;
+		margin: 0 0.05rem;
+	}
+
+	.stat-pill.streak {
+		background: rgba(196, 104, 122, 0.08);
+	}
+
+	.stat-pill.streak .stat-value {
+		color: #c4687a;
+	}
+
+	.stat-pill.best {
+		background: rgba(180, 142, 58, 0.08);
+	}
+
+	.stat-pill.best .stat-value {
+		color: #a08030;
+	}
+
+	/* ---- Feedback zone ---- */
+
+	.feedback-zone {
+		min-height: 2.2rem;
+		display: flex;
+		align-items: center;
+		justify-content: center;
 	}
 
 	.quiz-feedback {
-		font-size: 1.3rem;
-		font-weight: 700;
-		min-height: 2rem;
+		font-family: 'DM Serif Display', Georgia, serif;
+		font-size: 1.4rem;
+		font-weight: 400;
+		margin: 0;
+		line-height: 1;
+	}
+
+	.quiz-feedback.placeholder {
+		visibility: hidden;
 	}
 
 	.quiz-feedback.correct {
-		color: var(--color-success, #2e7d32);
+		color: #2d8a4e;
+		animation: pop-in 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
 	}
 
 	.quiz-feedback.wrong {
-		color: var(--color-error, #d32f2f);
+		color: #b33326;
+		animation: shake 0.4s cubic-bezier(0.36, 0.07, 0.19, 0.97);
+	}
+
+	@keyframes pop-in {
+		0% { opacity: 0; transform: scale(0.6); }
+		60% { opacity: 1; transform: scale(1.12); }
+		100% { transform: scale(1); }
+	}
+
+	@keyframes shake {
+		0%, 100% { transform: translateX(0); }
+		15% { transform: translateX(-6px); }
+		30% { transform: translateX(5px); }
+		45% { transform: translateX(-4px); }
+		60% { transform: translateX(3px); }
+		75% { transform: translateX(-2px); }
 	}
 
 	.quiz-detected {
-		font-size: 0.9rem;
-		opacity: 0.7;
+		font-size: 0.8rem;
+		color: #9a8e82;
+		margin: 0;
+	}
+
+	/* ---- Complete state ---- */
+
+	.complete-badge {
+		width: 2.5rem;
+		height: 2.5rem;
+		border-radius: 50%;
+		background: linear-gradient(135deg, #2d8a4e 0%, #3aaf62 100%);
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		animation: pop-in 0.45s cubic-bezier(0.34, 1.56, 0.64, 1);
+	}
+
+	.complete-check {
+		color: #fff;
+		font-size: 1.2rem;
+		font-weight: 700;
 	}
 
 	.quiz-complete-msg {
-		font-size: 1.3rem;
-		font-weight: 700;
-		color: var(--color-success, #2e7d32);
+		font-family: 'DM Serif Display', Georgia, serif;
+		font-size: 1.2rem;
+		font-weight: 400;
+		color: #2d8a4e;
+		margin: 0;
 	}
+
+	/* ---- Actions & buttons ---- */
 
 	.quiz-actions {
 		display: flex;
-		gap: 0.75rem;
+		gap: 0.5rem;
+		margin-top: 0.25rem;
 	}
 
 	.quiz-btn {
-		padding: 0.5rem 1.25rem;
+		padding: 0.5rem 1.2rem;
 		border: none;
-		border-radius: 0.5rem;
-		font-size: 1rem;
+		border-radius: 8px;
+		font-family: 'DM Sans', sans-serif;
+		font-size: 0.82rem;
 		cursor: pointer;
-		font-weight: 500;
-		transition: opacity 0.15s;
+		font-weight: 600;
+		transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+		letter-spacing: 0.01em;
 	}
 
-	.quiz-btn:hover {
-		opacity: 0.85;
+	.quiz-btn:active {
+		transform: scale(0.97);
 	}
 
 	.quiz-start {
-		background: var(--color-primary, #1976d2);
-		color: white;
+		background: #3d2055;
+		color: #fff;
+		display: flex;
+		align-items: center;
+		gap: 0.4rem;
+	}
+
+	.quiz-start:hover {
+		background: #4e2d6b;
+		box-shadow: 0 2px 10px rgba(61, 32, 85, 0.2);
+	}
+
+	.mic-icon {
+		font-size: 1rem;
 	}
 
 	.quiz-stop {
-		background: var(--color-error, #d32f2f);
-		color: white;
+		background: rgba(179, 51, 38, 0.08);
+		color: #b33326;
+	}
+
+	.quiz-stop:hover {
+		background: rgba(179, 51, 38, 0.14);
 	}
 
 	.quiz-hear {
-		background: var(--color-secondary, #7b1fa2);
-		color: white;
+		background: rgba(61, 32, 85, 0.07);
+		color: #3d2055;
+	}
+
+	.quiz-hear:hover {
+		background: rgba(61, 32, 85, 0.12);
+	}
+
+	/* ---- Responsive ---- */
+
+	@media (max-width: 600px) {
+		.quiz-mode {
+			padding: 0.5rem 0.75rem 0.75rem;
+		}
+
+		.quiz-stats {
+			flex-wrap: wrap;
+			justify-content: center;
+		}
+
+		.quiz-feedback {
+			font-size: 1.2rem;
+		}
+
+		.quiz-actions {
+			width: 100%;
+		}
+
+		.quiz-actions .quiz-btn {
+			flex: 1;
+			justify-content: center;
+			text-align: center;
+		}
 	}
 </style>

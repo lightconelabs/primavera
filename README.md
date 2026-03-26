@@ -1,8 +1,6 @@
 
 ![Primavera logo](assets/primavera-logo.png)
 
-# Primavera
-
 Primavera is an online tool for practicing sight-reading.
 
 ![Primavera demo](assets/demo.gif)
