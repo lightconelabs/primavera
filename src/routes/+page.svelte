@@ -109,14 +109,43 @@
 		<p class="subtitle">Sight reading & sight singing practice</p>
 	</header>
 
-	<section class="controls">
-		<div class="control-group">
-			<!-- svelte-ignore a11y_label_has_associated_control -->
-			<label>
-				Key Signature
-				<span class="key-label">{keySignatureLabel(settings.sharps, settings.flats)}</span>
-			</label>
-			<div class="key-buttons">
+	<section class="sheet-music">
+		{#if exercise}
+			<div class="sheet-scroll">
+				<SheetMusic {exercise} {highlightIndex} />
+			</div>
+			<div class="actions">
+				<button class="btn primary" onclick={generate}>
+					New Exercise
+				</button>
+				{#if isPlaying}
+					<button class="btn danger" onclick={stopPlayback}>
+						Stop
+					</button>
+				{:else}
+					<button class="btn secondary" onclick={play}>
+						▶ Play
+					</button>
+				{/if}
+			</div>
+		{/if}
+	</section>
+
+	<details class="controls">
+		<summary>
+			<span class="summary-content">
+				<span class="summary-label">Settings</span>
+				<span class="summary-values">{keySignatureLabel(settings.sharps, settings.flats)} · {settings.noteCount} notes · {settings.tempo} BPM</span>
+			</span>
+		</summary>
+
+		<div class="controls-body">
+			<div class="control-group">
+				<!-- svelte-ignore a11y_label_has_associated_control -->
+				<label>
+					Key
+					<span class="key-label">{keySignatureLabel(settings.sharps, settings.flats)}</span>
+				</label>
 				<div class="key-row">
 					<span class="row-label">♭</span>
 					{#each [7, 6, 5, 4, 3, 2, 1] as n}
@@ -139,77 +168,53 @@
 					<span class="row-label">♯</span>
 				</div>
 			</div>
-		</div>
 
-		<div class="control-group">
-			<label for="maxInterval">
-				Max interval: <strong>{settings.maxInterval} semitones</strong>
-				({intervalLabels[settings.maxInterval] ?? `${settings.maxInterval} semitones`})
-			</label>
-			<input
-				id="maxInterval"
-				type="range"
-				min="1"
-				max="12"
-				bind:value={settings.maxInterval}
-				onchange={generate}
-			/>
-		</div>
-
-		<div class="control-row">
 			<div class="control-group">
-				<label for="noteCount">Notes: <strong>{settings.noteCount}</strong></label>
+				<label for="maxInterval">
+					Interval <span class="value">{intervalLabels[settings.maxInterval] ?? `${settings.maxInterval} semitones`}</span>
+				</label>
 				<input
-					id="noteCount"
+					id="maxInterval"
 					type="range"
-					min="4"
-					max="32"
-					step="4"
-					bind:value={settings.noteCount}
+					min="1"
+					max="12"
+					bind:value={settings.maxInterval}
 					onchange={generate}
 				/>
 			</div>
 
-			<div class="control-group">
-				<label for="tempo">Tempo: <strong>{settings.tempo} BPM</strong></label>
-				<input
-					id="tempo"
-					type="range"
-					min="40"
-					max="200"
-					step="5"
-					bind:value={settings.tempo}
-					onchange={() => { saveSettings(settings); if (exercise) exercise.tempo = settings.tempo; }}
-				/>
+			<div class="control-row">
+				<div class="control-group">
+					<label for="noteCount">Notes <span class="value">{settings.noteCount}</span></label>
+					<input
+						id="noteCount"
+						type="range"
+						min="4"
+						max="32"
+						step="4"
+						bind:value={settings.noteCount}
+						onchange={generate}
+					/>
+				</div>
+
+				<div class="control-group">
+					<label for="tempo">Tempo <span class="value">{settings.tempo} BPM</span></label>
+					<input
+						id="tempo"
+						type="range"
+						min="40"
+						max="200"
+						step="5"
+						bind:value={settings.tempo}
+						onchange={() => { saveSettings(settings); if (exercise) exercise.tempo = settings.tempo; }}
+					/>
+				</div>
 			</div>
 		</div>
-	</section>
-
-	<section class="sheet-music">
-		{#if exercise}
-			<div class="sheet-scroll">
-				<SheetMusic {exercise} {highlightIndex} />
-			</div>
-		{/if}
-	</section>
-
-	<section class="actions">
-		<button class="btn primary" onclick={generate}>
-			New Exercise
-		</button>
-		{#if isPlaying}
-			<button class="btn danger" onclick={stopPlayback}>
-				Stop
-			</button>
-		{:else}
-			<button class="btn secondary" onclick={play}>
-				▶ Play
-			</button>
-		{/if}
-	</section>
+	</details>
 
 	<footer>
-		<p>Hover over notes to hear them. Click <strong>Play</strong> to hear the full exercise.</p>
+		<p>Click notes to hear them. Press <strong>Play</strong> for the full exercise.</p>
 	</footer>
 </main>
 
@@ -229,84 +234,202 @@
 
 	header {
 		text-align: center;
-		margin-bottom: 2rem;
+		margin-bottom: 1.5rem;
 	}
 
 	h1 {
-		font-size: 2rem;
+		font-size: 1.75rem;
 		margin: 0;
 		color: #4a2c6a;
 	}
 
 	.subtitle {
-		margin: 0.25rem 0 0;
-		color: #777;
-		font-size: 0.95rem;
+		margin: 0.15rem 0 0;
+		color: #999;
+		font-size: 0.85rem;
+		font-weight: 300;
 	}
 
-	.controls {
+	/* ---- Sheet music (primary focus) ---- */
+
+	.sheet-music {
 		background: white;
 		border: 1px solid #e8e5e0;
 		border-radius: 12px;
-		padding: 1.25rem 1.5rem;
+		padding: 1.5rem 1.5rem 1rem;
+		margin-bottom: 1rem;
+		overflow-x: auto;
+	}
+
+	.sheet-scroll {
+		min-width: fit-content;
+	}
+
+	.actions {
+		display: flex;
+		gap: 0.5rem;
+		justify-content: center;
+		padding-top: 0.75rem;
+		border-top: 1px solid #f0eeeb;
+	}
+
+	.btn {
+		padding: 0.45rem 1.25rem;
+		border: none;
+		border-radius: 6px;
+		font-size: 0.8rem;
+		font-weight: 500;
+		cursor: pointer;
+		transition: all 0.15s;
+		letter-spacing: 0.01em;
+	}
+
+	.btn.primary {
+		background: #4a2c6a;
+		color: white;
+	}
+
+	.btn.primary:hover {
+		background: #5d3a82;
+	}
+
+	.btn.secondary {
+		background: #f0eeeb;
+		color: #4a2c6a;
+	}
+
+	.btn.secondary:hover {
+		background: #e5e2de;
+	}
+
+	.btn.danger {
+		background: #f0eeeb;
+		color: #c0392b;
+	}
+
+	.btn.danger:hover {
+		background: #e5e2de;
+	}
+
+	/* ---- Settings (collapsible, secondary) ---- */
+
+	.controls {
 		margin-bottom: 1.5rem;
+		border: none;
+	}
+
+	.controls summary {
+		cursor: pointer;
+		list-style: none;
+		padding: 0.5rem 0;
+		user-select: none;
+	}
+
+	.controls summary::-webkit-details-marker {
+		display: none;
+	}
+
+	.summary-content {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+	}
+
+	.summary-label {
+		font-size: 0.75rem;
+		font-weight: 600;
+		text-transform: uppercase;
+		letter-spacing: 0.06em;
+		color: #999;
+	}
+
+	.summary-values {
+		font-size: 0.75rem;
+		color: #bbb;
+	}
+
+	.controls summary::before {
+		content: '▸';
+		display: inline-block;
+		font-size: 0.65rem;
+		color: #bbb;
+		margin-right: 0.35rem;
+		transition: transform 0.15s;
+	}
+
+	.controls[open] summary::before {
+		transform: rotate(90deg);
+	}
+
+	.controls-body {
 		display: flex;
 		flex-direction: column;
-		gap: 1rem;
+		gap: 0.75rem;
+		padding: 0.75rem 1rem;
+		background: white;
+		border: 1px solid #eee;
+		border-radius: 8px;
+		margin-top: 0.25rem;
 	}
 
 	.control-group {
 		display: flex;
 		flex-direction: column;
-		gap: 0.35rem;
+		gap: 0.25rem;
 	}
 
 	.control-group label {
-		font-size: 0.85rem;
-		color: #555;
+		font-size: 0.7rem;
+		font-weight: 500;
+		text-transform: uppercase;
+		letter-spacing: 0.04em;
+		color: #999;
+	}
+
+	.control-group label .value {
+		text-transform: none;
+		letter-spacing: normal;
+		font-weight: 600;
+		color: #666;
 	}
 
 	.key-label {
+		text-transform: none;
+		letter-spacing: normal;
 		font-weight: 600;
-		color: #4a2c6a;
-		margin-left: 0.5rem;
-	}
-
-	.key-buttons {
-		display: flex;
-		flex-direction: column;
-		gap: 0.25rem;
+		color: #666;
 	}
 
 	.key-row {
 		display: flex;
 		align-items: center;
-		gap: 0.25rem;
+		gap: 2px;
 		flex-wrap: wrap;
 	}
 
 	.row-label {
-		font-size: 1rem;
-		width: 1.5rem;
+		font-size: 0.75rem;
+		width: 1.25rem;
 		text-align: center;
-		color: #777;
+		color: #bbb;
 	}
 
 	.key-row button {
-		width: 2rem;
-		height: 2rem;
-		border: 1px solid #ddd;
-		border-radius: 6px;
-		background: #f8f8f8;
+		width: 1.6rem;
+		height: 1.6rem;
+		border: 1px solid #e8e5e0;
+		border-radius: 4px;
+		background: transparent;
 		cursor: pointer;
-		font-size: 0.8rem;
-		color: #555;
+		font-size: 0.7rem;
+		color: #888;
 		transition: all 0.15s;
+		padding: 0;
 	}
 
 	.key-row button:hover {
-		background: #eee;
-		border-color: #bbb;
+		background: #f5f3f0;
+		border-color: #ccc;
 	}
 
 	.key-row button.active {
@@ -316,7 +439,7 @@
 	}
 
 	.key-row button.natural {
-		font-size: 1rem;
+		font-size: 0.85rem;
 		font-weight: bold;
 	}
 
@@ -332,75 +455,19 @@
 	input[type='range'] {
 		width: 100%;
 		accent-color: #4a2c6a;
-	}
-
-	.sheet-music {
-		background: white;
-		border: 1px solid #e8e5e0;
-		border-radius: 12px;
-		padding: 1.5rem;
-		margin-bottom: 1.5rem;
-		overflow-x: auto;
-	}
-
-	.sheet-scroll {
-		min-width: fit-content;
-	}
-
-	.actions {
-		display: flex;
-		gap: 0.75rem;
-		justify-content: center;
-		margin-bottom: 1.5rem;
-	}
-
-	.btn {
-		padding: 0.6rem 1.5rem;
-		border: none;
-		border-radius: 8px;
-		font-size: 0.95rem;
-		font-weight: 500;
-		cursor: pointer;
-		transition: all 0.15s;
-	}
-
-	.btn.primary {
-		background: #4a2c6a;
-		color: white;
-	}
-
-	.btn.primary:hover {
-		background: #5d3a82;
-	}
-
-	.btn.secondary {
-		background: #27ae60;
-		color: white;
-	}
-
-	.btn.secondary:hover {
-		background: #2ecc71;
-	}
-
-	.btn.danger {
-		background: #e74c3c;
-		color: white;
-	}
-
-	.btn.danger:hover {
-		background: #c0392b;
+		height: 4px;
 	}
 
 	footer {
 		text-align: center;
-		font-size: 0.85rem;
-		color: #999;
+		font-size: 0.75rem;
+		color: #bbb;
 	}
 
 	@media (max-width: 600px) {
 		.control-row {
 			flex-direction: column;
-			gap: 1rem;
+			gap: 0.75rem;
 		}
 
 		.key-row {
