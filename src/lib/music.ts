@@ -112,6 +112,11 @@ export function midiToFrequency(midi: number): number {
 	return 440 * Math.pow(2, (midi - 69) / 12);
 }
 
+/** Convert frequency in Hz to nearest MIDI note number */
+export function frequencyToMidi(hz: number): number {
+	return Math.round(69 + 12 * Math.log2(hz / 440));
+}
+
 /**
  * Staff position: number of diatonic steps from middle C (C4).
  * C4 = 0, D4 = 1, E4 = 2, ... C5 = 7, etc.
