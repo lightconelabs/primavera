@@ -239,13 +239,14 @@
 				</div>
 				<div class="gauge-labels">
 					<span class="gauge-label flat">&#9837;</span>
-					{#if detectedNoteName}
-						<span class="gauge-note" class:in-tune={Math.abs(gaugeOffset) < 0.15}>{detectedNoteName}</span>
-					{:else}
-						<span class="gauge-note silent">-</span>
-					{/if}
+					<span class="gauge-note" class:in-tune={Math.abs(gaugeOffset) < 0.15}>
+						{exercise.notes[currentIndex]?.name ?? '-'}
+					</span>
 					<span class="gauge-label sharp">&#9839;</span>
 				</div>
+				{#if detectedNoteName}
+					<p class="gauge-heard">{m.quiz_detected_note({ note: detectedNoteName })}</p>
+				{/if}
 			</div>
 
 			<div class="feedback-zone">
@@ -461,8 +462,10 @@
 		color: #3a7a4c;
 	}
 
-	.gauge-note.silent {
-		color: #c4b8aa;
+	.gauge-heard {
+		font-size: 0.75rem;
+		color: #9a8e82;
+		margin: 0;
 	}
 
 	/* ---- Feedback zone ---- */
