@@ -1,0 +1,27 @@
+{
+  "name": "primavera",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "vite dev",
+    "build": "vite build",
+    "preview": "vite preview",
+    "check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
+    "demo:record": "node scripts/record-demo.mjs",
+    "demo:gif": "bash scripts/convert-demo-gif.sh",
+    "demo": "node scripts/record-demo.mjs && bash scripts/convert-demo-gif.sh"
+  },
+  "devDependencies": {
+    "@sveltejs/adapter-cloudflare": "^4.8.0",
+    "@sveltejs/kit": "^2.21.0",
+    "@sveltejs/vite-plugin-svelte": "^5.0.0",
+    "svelte": "^5.0.0",
+    "svelte-check": "^4.0.0",
+    "typescript": "^5.0.0",
+    "vite": "^6.0.0"
+  },
+  "type": "module",
+  "dependencies": {
+    "wrangler": "^4.77.0"
+  }
+}
