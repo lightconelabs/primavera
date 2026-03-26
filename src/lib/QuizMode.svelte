@@ -56,6 +56,10 @@
 	let lastMidi: number | null = null;
 	let processing = false;
 
+	// Rolling window for gauge smoothing
+	const GAUGE_WINDOW_SIZE = 12;
+	let gaugeHistory: number[] = [];
+
 	function resetState() {
 		currentIndex = 0;
 		score = 0;
@@ -65,6 +69,7 @@
 		detectedNoteName = null;
 		centsDeviation = null;
 		gaugeOffset = 0;
+		gaugeHistory = [];
 		errorMessage = null;
 		completed = false;
 		stableCount = 0;
@@ -117,8 +122,12 @@
 			const nearestExpectedFreq = midiToFrequency(expected.midi + octaveShift);
 			const centsFromExpected = 1200 * Math.log2(frequency / nearestExpectedFreq);
 			const raw = Math.max(-1, Math.min(1, centsFromExpected / 100));
-			// Smooth with exponential moving average to reduce jitter
-			gaugeOffset = gaugeOffset * 0.6 + raw * 0.4;
+
+			// Rolling average over last N frames for a steady needle
+			gaugeHistory.push(raw);
+			if (gaugeHistory.length > GAUGE_WINDOW_SIZE) gaugeHistory.shift();
+			const avg = gaugeHistory.reduce((a, b) => a + b, 0) / gaugeHistory.length;
+			gaugeOffset = avg;
 		}
 
 		// Don't evaluate while processing feedback
@@ -149,6 +158,7 @@
 			if (isNoteMatch(detectedMidi, expected.midi)) {
 				feedback = 'correct';
 				gaugeOffset = 0;
+				gaugeHistory = [];
 				score++;
 				streak++;
 				if (streak > bestStreak) bestStreak = streak;
@@ -166,6 +176,7 @@
 					onNoteChange(nextIndex);
 					feedback = null;
 					gaugeOffset = 0;
+					gaugeHistory = [];
 					centsDeviation = null;
 					detectedNoteName = null;
 				}
