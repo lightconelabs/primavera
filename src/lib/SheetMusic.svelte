@@ -30,29 +30,18 @@
 			responsive: 'resize',
 			staffwidth,
 			paddingtop: 0,
-			paddingbottom: 0
+			paddingbottom: 0,
+			clickListener: (_abcElem, _tuneNumber, classes) => {
+				const match = classes.match(/abcjs-n(\d+)/);
+				if (match) {
+					const noteIndex = parseInt(match[1], 10);
+					if (exercise.notes[noteIndex]) {
+						playNote(exercise.notes[noteIndex].midi, 0.4);
+					}
+				}
+			}
 		});
 		visualObj = result[0] ?? null;
-	}
-
-	function handleContainerClick(e: MouseEvent | TouchEvent) {
-		let el = (e instanceof TouchEvent ? document.elementFromPoint(
-			e.changedTouches[0].clientX, e.changedTouches[0].clientY
-		) : e.target) as Element | null;
-
-		while (el && el !== containerEl) {
-			const classes = el.getAttribute('class') ?? '';
-			const match = classes.match(/abcjs-n(\d+)/);
-			if (match) {
-				e.preventDefault();
-				const noteIndex = parseInt(match[1], 10);
-				if (exercise.notes[noteIndex]) {
-					playNote(exercise.notes[noteIndex].midi, 0.4);
-				}
-				return;
-			}
-			el = el.parentElement;
-		}
 	}
 
 	/** Highlight a specific note by index using CSS classes added by abcjs */
@@ -88,14 +77,7 @@
 	});
 </script>
 
-<!-- svelte-ignore a11y_click_events_have_key_events a11y_no_static_element_interactions -->
-<div
-	bind:this={containerEl}
-	class="sheet-music-container"
-	role="img"
-	aria-label={m.sheet_music_aria()}
-	onclick={handleContainerClick}
-></div>
+<div bind:this={containerEl} class="sheet-music-container" role="img" aria-label={m.sheet_music_aria()}></div>
 
 <style>
 	.sheet-music-container {
