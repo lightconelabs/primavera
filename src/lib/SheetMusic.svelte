@@ -17,23 +17,6 @@
 	let visualObj: abcjs.TuneObject | null = null;
 	let timingCallbacks: abcjs.TimingCallbacks | null = null;
 
-	function handleNoteClick(e: Event) {
-		// Walk up from the clicked element to find the note group with abcjs-n{index} class
-		let el = e.target as Element | null;
-		while (el && el !== containerEl) {
-			const classes = el.getAttribute('class') ?? '';
-			const match = classes.match(/abcjs-n(\d+)/);
-			if (match) {
-				const noteIndex = parseInt(match[1], 10);
-				if (exercise.notes[noteIndex]) {
-					playNote(exercise.notes[noteIndex].midi, 0.4);
-				}
-				return;
-			}
-			el = el.parentElement;
-		}
-	}
-
 	function render() {
 		if (!containerEl) return;
 
@@ -50,13 +33,26 @@
 			paddingbottom: 0
 		});
 		visualObj = result[0] ?? null;
+	}
 
-		// Attach native click/touch handlers directly to note elements
-		// This preserves the user gesture chain on iOS, unlike abcjs's clickListener
-		containerEl.querySelectorAll('.abcjs-note').forEach((noteEl) => {
-			noteEl.addEventListener('click', handleNoteClick);
-			noteEl.addEventListener('touchend', handleNoteClick);
-		});
+	function handleContainerClick(e: MouseEvent | TouchEvent) {
+		let el = (e instanceof TouchEvent ? document.elementFromPoint(
+			e.changedTouches[0].clientX, e.changedTouches[0].clientY
+		) : e.target) as Element | null;
+
+		while (el && el !== containerEl) {
+			const classes = el.getAttribute('class') ?? '';
+			const match = classes.match(/abcjs-n(\d+)/);
+			if (match) {
+				e.preventDefault();
+				const noteIndex = parseInt(match[1], 10);
+				if (exercise.notes[noteIndex]) {
+					playNote(exercise.notes[noteIndex].midi, 0.4);
+				}
+				return;
+			}
+			el = el.parentElement;
+		}
 	}
 
 	/** Highlight a specific note by index using CSS classes added by abcjs */
@@ -92,7 +88,14 @@
 	});
 </script>
 
-<div bind:this={containerEl} class="sheet-music-container" role="img" aria-label={m.sheet_music_aria()}></div>
+<!-- svelte-ignore a11y_click_events_have_key_events a11y_no_static_element_interactions -->
+<div
+	bind:this={containerEl}
+	class="sheet-music-container"
+	role="img"
+	aria-label={m.sheet_music_aria()}
+	onclick={handleContainerClick}
+></div>
 
 <style>
 	.sheet-music-container {
