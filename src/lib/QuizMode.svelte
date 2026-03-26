@@ -97,7 +97,7 @@
 	}
 
 	function onPitch(result: PitchResult) {
-		if (!active || processing || completed) return;
+		if (!active || completed) return;
 
 		const { midi, exactMidi, cents, frequency } = result;
 		if (midi === null || exactMidi === null || frequency === null) {
@@ -106,18 +106,19 @@
 			return;
 		}
 
+		// Always update the gauge, even during processing
 		detectedNoteName = midiToNoteName(midi);
 		centsDeviation = cents;
 
-		// Calculate gauge offset relative to the EXPECTED note
 		const expected = exercise.notes[currentIndex];
 		if (expected) {
 			const expectedFreq = midiToFrequency(expected.midi);
-			// Cents from expected note (not just nearest note)
 			const centsFromExpected = 1200 * Math.log2(frequency / expectedFreq);
-			// Clamp to -100..100 range, normalize to -1..1
 			gaugeOffset = Math.max(-1, Math.min(1, centsFromExpected / 100));
 		}
+
+		// Don't evaluate while processing feedback
+		if (processing) return;
 
 		if (midi === lastMidi) {
 			stableCount++;
@@ -137,47 +138,45 @@
 		if (processing || completed) return;
 		processing = true;
 
-		const expected = exercise.notes[currentIndex];
-		if (!expected) {
-			processing = false;
-			return;
-		}
+		try {
+			const expected = exercise.notes[currentIndex];
+			if (!expected) return;
 
-		if (isNoteMatch(detectedMidi, expected.midi)) {
-			feedback = 'correct';
-			score++;
-			streak++;
-			if (streak > bestStreak) bestStreak = streak;
+			if (isNoteMatch(detectedMidi, expected.midi)) {
+				feedback = 'correct';
+				score++;
+				streak++;
+				if (streak > bestStreak) bestStreak = streak;
 
-			await pause(600);
+				await pause(600);
 
-			const nextIndex = currentIndex + 1;
-			if (nextIndex >= exercise.notes.length) {
-				completed = true;
-				feedback = null;
-				stop();
-				onComplete(score);
+				const nextIndex = currentIndex + 1;
+				if (nextIndex >= exercise.notes.length) {
+					completed = true;
+					feedback = null;
+					stop();
+					onComplete(score);
+				} else {
+					currentIndex = nextIndex;
+					onNoteChange(nextIndex);
+					feedback = null;
+					gaugeOffset = 0;
+					centsDeviation = null;
+					detectedNoteName = null;
+				}
 			} else {
-				currentIndex = nextIndex;
-				onNoteChange(nextIndex);
+				feedback = 'wrong';
+				streak = 0;
+
+				pauseListening();
+				await playNote(expected.midi, 0.8);
+				await pause(400);
+				resumeListening();
 				feedback = null;
-				gaugeOffset = 0;
-				centsDeviation = null;
-				detectedNoteName = null;
 			}
-		} else {
-			feedback = 'wrong';
-			streak = 0;
-
-			// Pause mic before playing reference note to avoid self-detection
-			pauseListening();
-			await playNote(expected.midi, 0.8);
-			await pause(400);
-			resumeListening();
-			feedback = null;
+		} finally {
+			processing = false;
 		}
-
-		processing = false;
 	}
 
 	function pause(ms: number): Promise<void> {
