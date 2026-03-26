@@ -1,5 +1,5 @@
 
-![Primavera logo](assets/primavera.svg)
+![Primavera logo](assets/primavera-logo.png)
 
 # Primavera
 

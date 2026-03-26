@@ -102,7 +102,8 @@
 
 <main>
 	<header>
-		<h1>🌸 {m.app_title()}</h1>
+		<img src="/primavera-logo.png" alt="Primavera" class="logo" />
+		<h1>{m.app_title()}</h1>
 		<p class="subtitle">{m.app_subtitle()}</p>
 		<nav class="lang-switcher" aria-label="Language">
 			{#each locales as locale}
@@ -270,10 +271,16 @@
 		margin-bottom: 1.5rem;
 	}
 
+	.logo {
+		height: 48px;
+		image-rendering: pixelated;
+		margin-bottom: 0.25rem;
+	}
+
 	h1 {
 		font-size: 1.75rem;
 		margin: 0;
-		color: #4a2c6a;
+		color: #3a8a5c;
 	}
 
 	.subtitle {
@@ -302,12 +309,12 @@
 	}
 
 	.lang-switcher a:hover {
-		color: #4a2c6a;
+		color: #3a8a5c;
 		background: #f5f3f0;
 	}
 
 	.lang-switcher a.active {
-		color: #4a2c6a;
+		color: #3a8a5c;
 		background: #f0eeeb;
 		font-weight: 600;
 	}
@@ -355,9 +362,9 @@
 	}
 
 	.toggle-btn.active {
-		background: #4a2c6a;
+		background: #3a8a5c;
 		color: white;
-		border-color: #4a2c6a;
+		border-color: #3a8a5c;
 	}
 
 	.actions {
@@ -380,17 +387,17 @@
 	}
 
 	.btn.primary {
-		background: #4a2c6a;
+		background: #3a8a5c;
 		color: white;
 	}
 
 	.btn.primary:hover {
-		background: #5d3a82;
+		background: #4a9e6c;
 	}
 
 	.btn.secondary {
 		background: #f0eeeb;
-		color: #4a2c6a;
+		color: #3a8a5c;
 	}
 
 	.btn.secondary:hover {
@@ -528,9 +535,9 @@
 	}
 
 	.key-row button.active {
-		background: #4a2c6a;
+		background: #3a8a5c;
 		color: white;
-		border-color: #4a2c6a;
+		border-color: #3a8a5c;
 	}
 
 	.key-row button.natural {
@@ -549,7 +556,7 @@
 
 	input[type='range'] {
 		width: 100%;
-		accent-color: #4a2c6a;
+		accent-color: #3a8a5c;
 		height: 4px;
 	}
 
