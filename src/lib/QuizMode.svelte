@@ -114,7 +114,9 @@
 		if (expected) {
 			const expectedFreq = midiToFrequency(expected.midi);
 			const centsFromExpected = 1200 * Math.log2(frequency / expectedFreq);
-			gaugeOffset = Math.max(-1, Math.min(1, centsFromExpected / 100));
+			const raw = Math.max(-1, Math.min(1, centsFromExpected / 100));
+			// Smooth with exponential moving average to reduce jitter
+			gaugeOffset = gaugeOffset * 0.6 + raw * 0.4;
 		}
 
 		// Don't evaluate while processing feedback
@@ -148,7 +150,7 @@
 				streak++;
 				if (streak > bestStreak) bestStreak = streak;
 
-				await pause(600);
+				await delay(600);
 
 				const nextIndex = currentIndex + 1;
 				if (nextIndex >= exercise.notes.length) {
@@ -168,10 +170,13 @@
 				feedback = 'wrong';
 				streak = 0;
 
-				pauseListening();
-				await playNote(expected.midi, 0.8);
-				await pause(400);
-				resumeListening();
+				try {
+					pauseListening();
+					await playNote(expected.midi, 0.8);
+					await delay(400);
+				} finally {
+					resumeListening();
+				}
 				feedback = null;
 			}
 		} finally {
@@ -179,18 +184,20 @@
 		}
 	}
 
-	function pause(ms: number): Promise<void> {
+	function delay(ms: number): Promise<void> {
 		return new Promise((r) => setTimeout(r, ms));
 	}
 
 	async function hearCurrentNote() {
 		const note = exercise.notes[currentIndex];
 		if (note) {
-			// Pause mic so playback doesn't get detected as singing
-			pauseListening();
-			await playNote(note.midi, 0.8);
-			await pause(200);
-			resumeListening();
+			try {
+				pauseListening();
+				await playNote(note.midi, 0.8);
+				await delay(200);
+			} finally {
+				resumeListening();
+			}
 		}
 	}
 
@@ -431,7 +438,7 @@
 		height: 14px;
 		background: #2d2a26;
 		border-radius: 3px;
-		transition: left 0.1s ease-out;
+		transition: left 0.25s ease-out;
 		box-shadow: 0 1px 3px rgba(0,0,0,0.2);
 	}
 
