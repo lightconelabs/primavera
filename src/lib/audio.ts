@@ -18,13 +18,20 @@ function getAudioContext(): AudioContext {
 
 /**
  * Unlock the AudioContext on first user interaction.
- * Mobile browsers require AudioContext creation/resume within a direct gesture.
+ * iOS Safari requires playing a silent buffer within a user gesture
+ * to permanently unlock audio output.
  */
 export function unlockAudio(): void {
 	const ctx = getAudioContext();
 	if (ctx.state === 'suspended') {
 		ctx.resume();
 	}
+	// Play a silent buffer to unlock on iOS
+	const buffer = ctx.createBuffer(1, 1, ctx.sampleRate);
+	const source = ctx.createBufferSource();
+	source.buffer = buffer;
+	source.connect(ctx.destination);
+	source.start(0);
 }
 
 /**
