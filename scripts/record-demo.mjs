@@ -47,7 +47,10 @@ const newExBtn = page.locator('button.btn.primary');
 await newExBtn.click();
 await page.waitForTimeout(2000);
 
-// --- Scene 2: Switch key signatures ---
+// --- Scene 2: Open settings and switch key signatures ---
+const settingsToggle = page.locator('details.controls summary');
+await settingsToggle.click();
+await page.waitForTimeout(800);
 
 // Key signature button layout:
 //   [7♭  6♭  5♭  4♭  3♭  2♭  1♭] [♮] [1♯  2♯  3♯  4♯  5♯  6♯  7♯]
@@ -72,12 +75,16 @@ await page.waitForTimeout(1500);
 await newExBtn.click();
 await page.waitForTimeout(2000);
 
-// --- Scene 4: Back to C major, tighter intervals ---
+// --- Scene 4: Back to C major, tighter intervals, close settings ---
 await buttons.nth(7).click(); // ♮ natural
 await page.waitForTimeout(1000);
 await intervalSlider.fill('5');
 await intervalSlider.dispatchEvent('change');
 await page.waitForTimeout(1000);
+
+// Close settings
+await settingsToggle.click();
+await page.waitForTimeout(500);
 
 await newExBtn.click();
 await page.waitForTimeout(1500);
