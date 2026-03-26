@@ -160,8 +160,9 @@ export function generateExercise(settings: ExerciseSettings): Exercise {
 
 	const notes: Note[] = [];
 
-	// Start on tonic (first note of the scale in the middle octave)
-	const startNote = pool.find((n) => n.octave === 4 && n.name === 'C') ?? pool[0];
+	// Start on a random note within the first octave
+	const firstOctaveNotes = pool.filter((n) => n.octave === 4);
+	const startNote = firstOctaveNotes[Math.floor(Math.random() * firstOctaveNotes.length)] ?? pool[0];
 	notes.push({
 		name: startNote.name,
 		octave: startNote.octave,

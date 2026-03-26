@@ -262,7 +262,6 @@
 	}
 
 	.sheet-scroll {
-		min-width: fit-content;
 		display: flex;
 		justify-content: center;
 	}
