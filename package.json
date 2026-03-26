@@ -6,7 +6,10 @@
     "dev": "vite dev",
     "build": "vite build",
     "preview": "vite preview",
-    "check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json"
+    "check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
+    "demo:record": "node scripts/record-demo.mjs",
+    "demo:gif": "bash scripts/convert-demo-gif.sh",
+    "demo": "node scripts/record-demo.mjs && bash scripts/convert-demo-gif.sh"
   },
   "devDependencies": {
     "@sveltejs/adapter-cloudflare": "^4.8.0",
