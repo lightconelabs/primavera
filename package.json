@@ -10,6 +10,8 @@
     "demo:record": "node scripts/record-demo.mjs",
     "demo:gif": "bash scripts/convert-demo-gif.sh",
     "demo": "node scripts/record-demo.mjs && bash scripts/convert-demo-gif.sh",
+    "test": "vitest run",
+    "test:watch": "vitest",
     "test:e2e": "playwright test"
   },
   "devDependencies": {
