@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { onMount, onDestroy } from 'svelte';
 	import abcjs from 'abcjs';
+	import { m } from '$lib/paraglide/messages.js';
 	import type { Exercise } from './music';
 	import { exerciseToAbc } from './abc';
 	import { playNote } from './audio';
@@ -72,7 +73,7 @@
 	});
 </script>
 
-<div bind:this={containerEl} class="sheet-music-container" role="img" aria-label="Sheet music exercise"></div>
+<div bind:this={containerEl} class="sheet-music-container" role="img" aria-label={m.sheet_music_aria()}></div>
 
 <style>
 	.sheet-music-container {

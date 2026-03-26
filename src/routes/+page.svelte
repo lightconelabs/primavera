@@ -1,5 +1,8 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
+	import { page } from '$app/stores';
+	import { m } from '$lib/paraglide/messages.js';
+	import { localizeHref, getLocale, locales } from '$lib/paraglide/runtime.js';
 	import SheetMusic from '$lib/SheetMusic.svelte';
 	import { generateExercise, type Exercise, type ExerciseSettings, DEFAULT_SETTINGS } from '$lib/music';
 	import { playSequence } from '$lib/audio';
@@ -69,44 +72,53 @@
 		highlightIndex = -1;
 	}
 
-	/** Key signature display name */
 	function keySignatureLabel(sharps: number, flats: number): string {
-		const keyNames: Record<string, string> = {
-			's0': 'C major',
-			's1': 'G major', 's2': 'D major', 's3': 'A major',
-			's4': 'E major', 's5': 'B major', 's6': 'F♯ major', 's7': 'C♯ major',
-			'f1': 'F major', 'f2': 'B♭ major', 'f3': 'E♭ major',
-			'f4': 'A♭ major', 'f5': 'D♭ major', 'f6': 'G♭ major', 'f7': 'C♭ major'
+		const keyNames: Record<string, () => string> = {
+			's0': m.key_c_major,
+			's1': m.key_g_major, 's2': m.key_d_major, 's3': m.key_a_major,
+			's4': m.key_e_major, 's5': m.key_b_major, 's6': m.key_f_sharp_major, 's7': m.key_c_sharp_major,
+			'f1': m.key_f_major, 'f2': m.key_b_flat_major, 'f3': m.key_e_flat_major,
+			'f4': m.key_a_flat_major, 'f5': m.key_d_flat_major, 'f6': m.key_g_flat_major, 'f7': m.key_c_flat_major
 		};
-		if (flats > 0) return keyNames[`f${flats}`] ?? `${flats} flats`;
-		return keyNames[`s${sharps}`] ?? `${sharps} sharps`;
+		if (flats > 0) return keyNames[`f${flats}`]?.() ?? m.n_flats({ count: flats });
+		return keyNames[`s${sharps}`]?.() ?? m.n_sharps({ count: sharps });
 	}
 
-	const intervalLabels: Record<number, string> = {
-		1: 'minor 2nd',
-		2: 'major 2nd',
-		3: 'minor 3rd',
-		4: 'major 3rd',
-		5: 'perfect 4th',
-		6: 'tritone',
-		7: 'perfect 5th',
-		8: 'minor 6th',
-		9: 'major 6th',
-		10: 'minor 7th',
-		11: 'major 7th',
-		12: 'octave'
+	const intervalLabels: Record<number, () => string> = {
+		1: m.interval_minor_2nd,
+		2: m.interval_major_2nd,
+		3: m.interval_minor_3rd,
+		4: m.interval_major_3rd,
+		5: m.interval_perfect_4th,
+		6: m.interval_tritone,
+		7: m.interval_perfect_5th,
+		8: m.interval_minor_6th,
+		9: m.interval_major_6th,
+		10: m.interval_minor_7th,
+		11: m.interval_major_7th,
+		12: m.interval_octave
 	};
 </script>
 
 <svelte:head>
-	<title>Primavera — Sight Reading Practice</title>
-	<meta name="description" content="Practice sight reading and sight singing with randomly generated exercises." />
+	<title>{m.app_title()} — {m.app_subtitle()}</title>
+	<meta name="description" content={m.meta_description()} />
 </svelte:head>
 
 <main>
 	<header>
-		<h1>🌸 Primavera</h1>
-		<p class="subtitle">Sight reading & sight singing practice</p>
+		<h1>🌸 {m.app_title()}</h1>
+		<p class="subtitle">{m.app_subtitle()}</p>
+		<nav class="lang-switcher" aria-label="Language">
+			{#each locales as locale}
+				<a
+					href={localizeHref($page.url.pathname, { locale })}
+					class:active={getLocale() === locale}
+					data-sveltekit-reload
+					aria-current={getLocale() === locale ? 'page' : undefined}
+				>{locale.toUpperCase()}</a>
+			{/each}
+		</nav>
 	</header>
 
 	<section class="sheet-music">
@@ -116,15 +128,15 @@
 			</div>
 			<div class="actions">
 				<button class="btn primary" onclick={generate}>
-					New Exercise
+					{m.new_exercise()}
 				</button>
 				{#if isPlaying}
 					<button class="btn danger" onclick={stopPlayback}>
-						Stop
+						{m.stop()}
 					</button>
 				{:else}
 					<button class="btn secondary" onclick={play}>
-						▶ Play
+						▶ {m.play()}
 					</button>
 				{/if}
 			</div>
@@ -134,8 +146,8 @@
 	<details class="controls">
 		<summary>
 			<span class="summary-content">
-				<span class="summary-label">Settings</span>
-				<span class="summary-values">{keySignatureLabel(settings.sharps, settings.flats)} · {settings.noteCount} notes · {settings.tempo} BPM</span>
+				<span class="summary-label">{m.settings()}</span>
+				<span class="summary-values">{keySignatureLabel(settings.sharps, settings.flats)} · {settings.noteCount} {m.notes()} · {settings.tempo} {m.bpm()}</span>
 			</span>
 		</summary>
 
@@ -143,7 +155,7 @@
 			<div class="control-group">
 				<!-- svelte-ignore a11y_label_has_associated_control -->
 				<label>
-					Key
+					{m.key_label()}
 					<span class="key-label">{keySignatureLabel(settings.sharps, settings.flats)}</span>
 				</label>
 				<div class="key-row">
@@ -171,7 +183,7 @@
 
 			<div class="control-group">
 				<label for="maxInterval">
-					Interval <span class="value">{intervalLabels[settings.maxInterval] ?? `${settings.maxInterval} semitones`}</span>
+					{m.interval()} <span class="value">{intervalLabels[settings.maxInterval]?.() ?? `${settings.maxInterval} semitones`}</span>
 				</label>
 				<input
 					id="maxInterval"
@@ -185,7 +197,7 @@
 
 			<div class="control-row">
 				<div class="control-group">
-					<label for="noteCount">Notes <span class="value">{settings.noteCount}</span></label>
+					<label for="noteCount">{m.notes()} <span class="value">{settings.noteCount}</span></label>
 					<input
 						id="noteCount"
 						type="range"
@@ -198,7 +210,7 @@
 				</div>
 
 				<div class="control-group">
-					<label for="tempo">Tempo <span class="value">{settings.tempo} BPM</span></label>
+					<label for="tempo">{m.tempo()} <span class="value">{settings.tempo} {m.bpm()}</span></label>
 					<input
 						id="tempo"
 						type="range"
@@ -214,7 +226,7 @@
 	</details>
 
 	<footer>
-		<p>Click notes to hear them. Press <strong>Play</strong> for the full exercise.</p>
+		<p>{@html m.footer_hint()}</p>
 	</footer>
 </main>
 
@@ -248,6 +260,35 @@
 		color: #999;
 		font-size: 0.85rem;
 		font-weight: 300;
+	}
+
+	.lang-switcher {
+		display: flex;
+		gap: 0.25rem;
+		justify-content: center;
+		margin-top: 0.5rem;
+	}
+
+	.lang-switcher a {
+		font-size: 0.7rem;
+		padding: 0.2rem 0.5rem;
+		border-radius: 4px;
+		text-decoration: none;
+		color: #999;
+		font-weight: 500;
+		letter-spacing: 0.04em;
+		transition: all 0.15s;
+	}
+
+	.lang-switcher a:hover {
+		color: #4a2c6a;
+		background: #f5f3f0;
+	}
+
+	.lang-switcher a.active {
+		color: #4a2c6a;
+		background: #f0eeeb;
+		font-weight: 600;
 	}
 
 	/* ---- Sheet music (primary focus) ---- */
