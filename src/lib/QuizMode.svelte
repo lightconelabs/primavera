@@ -54,7 +54,8 @@
 	const STABILITY_THRESHOLD = 5;
 	let stableCount = 0;
 	let lastMidi: number | null = null;
-	let processing = false;
+	// Use a timestamp instead of a boolean flag — can't get stuck
+	let processingUntil = 0;
 
 	// Rolling window for gauge smoothing
 	const GAUGE_WINDOW_SIZE = 12;
@@ -74,7 +75,7 @@
 		completed = false;
 		stableCount = 0;
 		lastMidi = null;
-		processing = false;
+		processingUntil = 0;
 	}
 
 	async function start() {
@@ -130,8 +131,8 @@
 			gaugeOffset = avg;
 		}
 
-		// Don't evaluate while processing feedback
-		if (processing) return;
+		// Don't evaluate while processing feedback (auto-expires)
+		if (Date.now() < processingUntil) return;
 
 		if (midi === lastMidi) {
 			stableCount++;
@@ -147,24 +148,23 @@
 		}
 	}
 
-	async function evaluateNote(detectedMidi: number) {
-		if (processing || completed) return;
-		processing = true;
+	function evaluateNote(detectedMidi: number) {
+		if (Date.now() < processingUntil || completed) return;
 
-		try {
-			const expected = exercise.notes[currentIndex];
-			if (!expected) return;
+		const expected = exercise.notes[currentIndex];
+		if (!expected) return;
 
-			if (isNoteMatch(detectedMidi, expected.midi)) {
-				feedback = 'correct';
-				gaugeOffset = 0;
-				gaugeHistory = [];
-				score++;
-				streak++;
-				if (streak > bestStreak) bestStreak = streak;
+		if (isNoteMatch(detectedMidi, expected.midi)) {
+			feedback = 'correct';
+			gaugeOffset = 0;
+			gaugeHistory = [];
+			score++;
+			streak++;
+			if (streak > bestStreak) bestStreak = streak;
 
-				await delay(600);
-
+			// Block evaluation for 800ms, then advance
+			processingUntil = Date.now() + 800;
+			setTimeout(() => {
 				const nextIndex = currentIndex + 1;
 				if (nextIndex >= exercise.notes.length) {
 					completed = true;
@@ -180,21 +180,20 @@
 					centsDeviation = null;
 					detectedNoteName = null;
 				}
-			} else {
-				feedback = 'wrong';
-				streak = 0;
+			}, 700);
+		} else {
+			feedback = 'wrong';
+			streak = 0;
 
-				try {
-					pauseListening();
-					await playNote(expected.midi, 0.8);
-					await delay(400);
-				} finally {
+			// Block evaluation for 1.5s, play correct note
+			processingUntil = Date.now() + 1500;
+			pauseListening();
+			playNote(expected.midi, 0.8).finally(() => {
+				setTimeout(() => {
 					resumeListening();
-				}
-				feedback = null;
-			}
-		} finally {
-			processing = false;
+					feedback = null;
+				}, 400);
+			});
 		}
 	}
 
