@@ -41,5 +41,20 @@
 	"interval_major_6th": "major 6th",
 	"interval_minor_7th": "minor 7th",
 	"interval_major_7th": "major 7th",
-	"interval_octave": "octave"
+	"interval_octave": "octave",
+	"quiz_mode": "Quiz",
+	"practice_mode": "Practice",
+	"quiz_start": "Start Quiz",
+	"quiz_stop": "Stop Quiz",
+	"quiz_listen": "Sing or play this note",
+	"quiz_correct": "Correct!",
+	"quiz_wrong": "Try again",
+	"quiz_score": "{correct} / {total}",
+	"quiz_streak": "Streak: {count}",
+	"quiz_best_streak": "Best: {count}",
+	"quiz_complete": "Exercise complete!",
+	"quiz_mic_permission": "Microphone access is needed for quiz mode",
+	"quiz_mic_unsupported": "Your browser does not support microphone input",
+	"quiz_detected_note": "Heard: {note}",
+	"quiz_hear_note": "Hear note"
 }

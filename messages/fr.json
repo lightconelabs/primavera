@@ -41,5 +41,20 @@
 	"interval_major_6th": "sixte majeure",
 	"interval_minor_7th": "septième mineure",
 	"interval_major_7th": "septième majeure",
-	"interval_octave": "octave"
+	"interval_octave": "octave",
+	"quiz_mode": "Quiz",
+	"practice_mode": "Pratique",
+	"quiz_start": "Commencer le quiz",
+	"quiz_stop": "Arreter le quiz",
+	"quiz_listen": "Chantez ou jouez cette note",
+	"quiz_correct": "Correct !",
+	"quiz_wrong": "Reessayez",
+	"quiz_score": "{correct} / {total}",
+	"quiz_streak": "Serie : {count}",
+	"quiz_best_streak": "Record : {count}",
+	"quiz_complete": "Exercice termine !",
+	"quiz_mic_permission": "L'acces au microphone est necessaire pour le mode quiz",
+	"quiz_mic_unsupported": "Votre navigateur ne prend pas en charge l'entree microphone",
+	"quiz_detected_note": "Entendu : {note}",
+	"quiz_hear_note": "Ecouter la note"
 }

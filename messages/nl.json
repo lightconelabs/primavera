@@ -41,5 +41,20 @@
 	"interval_major_6th": "grote sext",
 	"interval_minor_7th": "kleine septiem",
 	"interval_major_7th": "grote septiem",
-	"interval_octave": "octaaf"
+	"interval_octave": "octaaf",
+	"quiz_mode": "Quiz",
+	"practice_mode": "Oefenen",
+	"quiz_start": "Start quiz",
+	"quiz_stop": "Stop quiz",
+	"quiz_listen": "Zing of speel deze noot",
+	"quiz_correct": "Juist!",
+	"quiz_wrong": "Probeer opnieuw",
+	"quiz_score": "{correct} / {total}",
+	"quiz_streak": "Reeks: {count}",
+	"quiz_best_streak": "Beste: {count}",
+	"quiz_complete": "Oefening voltooid!",
+	"quiz_mic_permission": "Microfoontoegang is nodig voor de quizmodus",
+	"quiz_mic_unsupported": "Je browser ondersteunt geen microfooninvoer",
+	"quiz_detected_note": "Gehoord: {note}",
+	"quiz_hear_note": "Beluister noot"
 }

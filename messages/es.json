@@ -41,5 +41,20 @@
 	"interval_major_6th": "sexta mayor",
 	"interval_minor_7th": "séptima menor",
 	"interval_major_7th": "séptima mayor",
-	"interval_octave": "octava"
+	"interval_octave": "octava",
+	"quiz_mode": "Quiz",
+	"practice_mode": "Practica",
+	"quiz_start": "Iniciar quiz",
+	"quiz_stop": "Detener quiz",
+	"quiz_listen": "Canta o toca esta nota",
+	"quiz_correct": "Correcto!",
+	"quiz_wrong": "Intentalo de nuevo",
+	"quiz_score": "{correct} / {total}",
+	"quiz_streak": "Racha: {count}",
+	"quiz_best_streak": "Mejor: {count}",
+	"quiz_complete": "Ejercicio completado!",
+	"quiz_mic_permission": "Se necesita acceso al microfono para el modo quiz",
+	"quiz_mic_unsupported": "Tu navegador no soporta entrada de microfono",
+	"quiz_detected_note": "Escuchado: {note}",
+	"quiz_hear_note": "Escuchar nota"
 }

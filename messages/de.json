@@ -41,5 +41,20 @@
 	"interval_major_6th": "große Sexte",
 	"interval_minor_7th": "kleine Septime",
 	"interval_major_7th": "große Septime",
-	"interval_octave": "Oktave"
+	"interval_octave": "Oktave",
+	"quiz_mode": "Quiz",
+	"practice_mode": "Ueben",
+	"quiz_start": "Quiz starten",
+	"quiz_stop": "Quiz stoppen",
+	"quiz_listen": "Singe oder spiele diese Note",
+	"quiz_correct": "Richtig!",
+	"quiz_wrong": "Nochmal versuchen",
+	"quiz_score": "{correct} / {total}",
+	"quiz_streak": "Serie: {count}",
+	"quiz_best_streak": "Beste: {count}",
+	"quiz_complete": "Uebung abgeschlossen!",
+	"quiz_mic_permission": "Mikrofonzugriff wird fuer den Quizmodus benoetigt",
+	"quiz_mic_unsupported": "Ihr Browser unterstuetzt keine Mikrofoneingabe",
+	"quiz_detected_note": "Gehoert: {note}",
+	"quiz_hear_note": "Note anhoeren"
 }
