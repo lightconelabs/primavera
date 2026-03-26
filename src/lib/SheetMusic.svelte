@@ -9,9 +9,10 @@
 	interface Props {
 		exercise: Exercise;
 		highlightIndex?: number;
+		onNoteClick?: (noteIndex: number) => void;
 	}
 
-	let { exercise, highlightIndex = -1 }: Props = $props();
+	let { exercise, highlightIndex = -1, onNoteClick }: Props = $props();
 
 	let containerEl: HTMLDivElement;
 	let visualObj: abcjs.TuneObject | null = null;
@@ -32,9 +33,21 @@
 			paddingtop: 0,
 			paddingbottom: 0,
 			clickListener: (abcElem) => {
-				const noteIndex = noteCharPositions.get(abcElem.startChar);
+				// Try exact match first, then search nearby positions (±3 chars)
+				let noteIndex = noteCharPositions.get(abcElem.startChar);
+				if (noteIndex === undefined) {
+					for (let offset = 1; offset <= 3; offset++) {
+						noteIndex = noteCharPositions.get(abcElem.startChar - offset)
+							?? noteCharPositions.get(abcElem.startChar + offset);
+						if (noteIndex !== undefined) break;
+					}
+				}
 				if (noteIndex !== undefined && exercise.notes[noteIndex]) {
-					playNote(exercise.notes[noteIndex].midi, 0.4);
+					if (onNoteClick) {
+						onNoteClick(noteIndex);
+					} else {
+						playNote(exercise.notes[noteIndex].midi, 0.4);
+					}
 				}
 			}
 		});

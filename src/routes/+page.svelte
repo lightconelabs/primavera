@@ -6,7 +6,8 @@
 	import SheetMusic from '$lib/SheetMusic.svelte';
 	import QuizMode from '$lib/QuizMode.svelte';
 	import { generateExercise, type Exercise, type ExerciseSettings, DEFAULT_SETTINGS } from '$lib/music';
-	import { playSequence } from '$lib/audio';
+	import { playSequence, playNote } from '$lib/audio';
+	import { pauseListening, resumeListening } from '$lib/microphone';
 	import { loadSettings, saveSettings } from '$lib/store';
 
 	let settings: ExerciseSettings = $state({ ...DEFAULT_SETTINGS });
@@ -150,7 +151,12 @@
 			</div>
 
 			<div class="sheet-scroll">
-				<SheetMusic {exercise} {highlightIndex} />
+				<SheetMusic {exercise} {highlightIndex} onNoteClick={mode === 'quiz' ? async (noteIndex) => {
+					pauseListening();
+					await playNote(exercise.notes[noteIndex].midi, 0.4);
+					await new Promise(r => setTimeout(r, 200));
+					resumeListening();
+				} : undefined} />
 			</div>
 
 			<div class="action-bar">

@@ -235,7 +235,7 @@
 			<div class="tuning-gauge">
 				<div class="gauge-track">
 					<div class="gauge-center"></div>
-					<div class="gauge-needle" style="transform: translateX({gaugeOffset * 100}%)"></div>
+					<div class="gauge-needle" style="left: calc({50 + gaugeOffset * 45}% - 6px)"></div>
 				</div>
 				<div class="gauge-labels">
 					<span class="gauge-label flat">&#9837;</span>
@@ -412,7 +412,6 @@
 		height: 8px;
 		background: linear-gradient(90deg, #d4849a 0%, #e8e0d4 35%, #3a7a4c 50%, #e8e0d4 65%, #d4849a 100%);
 		border-radius: 4px;
-		overflow: hidden;
 	}
 
 	.gauge-center {
@@ -428,13 +427,12 @@
 
 	.gauge-needle {
 		position: absolute;
-		left: calc(50% - 6px);
 		top: -3px;
 		width: 12px;
 		height: 14px;
 		background: #2d2a26;
 		border-radius: 3px;
-		transition: transform 0.1s ease-out;
+		transition: left 0.1s ease-out;
 		box-shadow: 0 1px 3px rgba(0,0,0,0.2);
 	}
 
