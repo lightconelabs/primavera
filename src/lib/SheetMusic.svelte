@@ -20,9 +20,14 @@
 		if (!containerEl) return;
 
 		const abc = exerciseToAbc(exercise);
+		const staffwidth = Math.max(500, exercise.notes.length * 40);
+		// Set max-width so the container centers at the natural staff width
+		// while responsive:'resize' still allows it to shrink on mobile
+		containerEl.style.maxWidth = `${staffwidth + 60}px`;
 		const result = abcjs.renderAbc(containerEl, abc, {
 			add_classes: true,
-			staffwidth: Math.max(500, exercise.notes.length * 40),
+			responsive: 'resize',
+			staffwidth,
 			paddingtop: 0,
 			paddingbottom: 0,
 			clickListener: (abcElem) => {
@@ -72,10 +77,6 @@
 <style>
 	.sheet-music-container {
 		width: 100%;
-	}
-
-	.sheet-music-container :global(svg) {
-		display: block;
 		margin: 0 auto;
 	}
 
