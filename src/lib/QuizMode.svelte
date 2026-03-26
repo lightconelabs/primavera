@@ -285,7 +285,7 @@
 		align-items: center;
 		gap: 0.45rem;
 		padding: 0.3rem 0.75rem;
-		background: rgba(61, 32, 85, 0.06);
+		background: rgba(58, 122, 76, 0.06);
 		border-radius: 20px;
 	}
 
@@ -293,7 +293,7 @@
 		width: 8px;
 		height: 8px;
 		border-radius: 50%;
-		background: #c4687a;
+		background: #d4849a;
 		animation: pulse 1.8s ease-in-out infinite;
 	}
 
@@ -305,7 +305,7 @@
 	.listening-text {
 		font-size: 0.78rem;
 		font-weight: 600;
-		color: #3d2055;
+		color: #3a7a4c;
 		letter-spacing: 0.03em;
 	}
 
@@ -321,14 +321,14 @@
 		align-items: center;
 		gap: 0.3rem;
 		padding: 0.25rem 0.65rem;
-		background: rgba(61, 32, 85, 0.05);
+		background: rgba(58, 122, 76, 0.05);
 		border-radius: 8px;
 	}
 
 	.stat-value {
 		font-size: 0.85rem;
 		font-weight: 700;
-		color: #3d2055;
+		color: #3a7a4c;
 	}
 
 	.stat-sep {
@@ -338,11 +338,11 @@
 	}
 
 	.stat-pill.streak {
-		background: rgba(196, 104, 122, 0.08);
+		background: rgba(212, 132, 154, 0.08);
 	}
 
 	.stat-pill.streak .stat-value {
-		color: #c4687a;
+		color: #d4849a;
 	}
 
 	.stat-pill.best {
@@ -457,7 +457,7 @@
 	}
 
 	.quiz-start {
-		background: #3d2055;
+		background: #3a7a4c;
 		color: #fff;
 		display: flex;
 		align-items: center;
@@ -465,8 +465,8 @@
 	}
 
 	.quiz-start:hover {
-		background: #4e2d6b;
-		box-shadow: 0 2px 10px rgba(61, 32, 85, 0.2);
+		background: #468f58;
+		box-shadow: 0 2px 10px rgba(58, 122, 76, 0.2);
 	}
 
 	.mic-icon {
@@ -483,12 +483,12 @@
 	}
 
 	.quiz-hear {
-		background: rgba(61, 32, 85, 0.07);
-		color: #3d2055;
+		background: rgba(58, 122, 76, 0.07);
+		color: #3a7a4c;
 	}
 
 	.quiz-hear:hover {
-		background: rgba(61, 32, 85, 0.12);
+		background: rgba(58, 122, 76, 0.12);
 	}
 
 	/* ---- Responsive ---- */

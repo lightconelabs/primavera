@@ -108,10 +108,7 @@
 		<div class="header-row">
 			<div class="brand">
 				<img src="/primavera-logo.png" alt="Primavera" class="logo" />
-				<div>
-					<h1>{m.app_title()}</h1>
-					<p class="subtitle">{m.app_subtitle()}</p>
-				</div>
+				<p class="subtitle">{m.app_subtitle()}</p>
 			</div>
 			<nav class="lang-switcher" aria-label="Language">
 				{#each locales as locale}
@@ -305,23 +302,13 @@
 	}
 
 	.logo {
-		height: 44px;
+		height: 40px;
 		image-rendering: pixelated;
 		flex-shrink: 0;
 	}
 
-	h1 {
-		font-family: 'DM Serif Display', Georgia, serif;
-		font-size: 1.5rem;
-		font-weight: 400;
-		margin: 0;
-		color: #3d2055;
-		line-height: 1.15;
-		letter-spacing: -0.01em;
-	}
-
 	.subtitle {
-		margin: 0.1rem 0 0;
+		margin: 0;
 		color: #9a8e82;
 		font-size: 0.78rem;
 		font-weight: 400;
@@ -346,13 +333,13 @@
 	}
 
 	.lang-switcher a:hover {
-		color: #3d2055;
-		background: rgba(61, 32, 85, 0.06);
+		color: #3a7a4c;
+		background: rgba(58, 122, 76, 0.06);
 	}
 
 	.lang-switcher a.active {
-		color: #3d2055;
-		background: rgba(61, 32, 85, 0.08);
+		color: #3a7a4c;
+		background: rgba(58, 122, 76, 0.08);
 	}
 
 	/* ---- Sheet music card ---- */
@@ -364,7 +351,7 @@
 		padding: 0;
 		margin-bottom: 1rem;
 		overflow: hidden;
-		box-shadow: 0 1px 3px rgba(61, 32, 85, 0.04), 0 4px 16px rgba(61, 32, 85, 0.03);
+		box-shadow: 0 1px 3px rgba(58, 122, 76, 0.04), 0 4px 16px rgba(58, 122, 76, 0.03);
 	}
 
 	.sheet-scroll {
@@ -380,7 +367,7 @@
 		display: flex;
 		position: relative;
 		margin: 0.75rem auto 0;
-		background: rgba(61, 32, 85, 0.05);
+		background: rgba(58, 122, 76, 0.05);
 		border-radius: 10px;
 		padding: 3px;
 		width: fit-content;
@@ -397,7 +384,7 @@
 		font-size: 0.8rem;
 		font-weight: 500;
 		cursor: pointer;
-		color: #8a7d90;
+		color: #7a9a82;
 		transition: color 0.25s;
 		border-radius: 8px;
 		display: flex;
@@ -412,7 +399,7 @@
 	}
 
 	.toggle-btn.active {
-		color: #3d2055;
+		color: #3a7a4c;
 		font-weight: 600;
 	}
 
@@ -424,7 +411,7 @@
 		height: calc(100% - 6px);
 		background: #fff;
 		border-radius: 8px;
-		box-shadow: 0 1px 4px rgba(61, 32, 85, 0.1);
+		box-shadow: 0 1px 4px rgba(58, 122, 76, 0.1);
 		transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 		pointer-events: none;
 	}
@@ -460,22 +447,22 @@
 	}
 
 	.btn.primary {
-		background: #3d2055;
+		background: #3a7a4c;
 		color: #fff;
 	}
 
 	.btn.primary:hover {
-		background: #4e2d6b;
-		box-shadow: 0 2px 8px rgba(61, 32, 85, 0.2);
+		background: #468f58;
+		box-shadow: 0 2px 8px rgba(58, 122, 76, 0.2);
 	}
 
 	.btn.secondary {
-		background: rgba(61, 32, 85, 0.07);
-		color: #3d2055;
+		background: rgba(58, 122, 76, 0.07);
+		color: #3a7a4c;
 	}
 
 	.btn.secondary:hover {
-		background: rgba(61, 32, 85, 0.12);
+		background: rgba(58, 122, 76, 0.12);
 	}
 
 	.btn.danger {
@@ -551,7 +538,7 @@
 		border: 1px solid #e8e0d4;
 		border-radius: 12px;
 		margin-top: 0.35rem;
-		box-shadow: 0 1px 3px rgba(61, 32, 85, 0.03);
+		box-shadow: 0 1px 3px rgba(58, 122, 76, 0.03);
 	}
 
 	.control-group {
@@ -612,15 +599,15 @@
 	}
 
 	.key-row button:hover {
-		background: rgba(61, 32, 85, 0.05);
+		background: rgba(58, 122, 76, 0.05);
 		border-color: #c4b8aa;
 	}
 
 	.key-row button.active {
-		background: #3d2055;
+		background: #3a7a4c;
 		color: white;
-		border-color: #3d2055;
-		box-shadow: 0 1px 4px rgba(61, 32, 85, 0.2);
+		border-color: #3a7a4c;
+		box-shadow: 0 1px 4px rgba(58, 122, 76, 0.2);
 	}
 
 	.key-row button.natural {
@@ -653,25 +640,25 @@
 		width: 16px;
 		height: 16px;
 		border-radius: 50%;
-		background: #3d2055;
+		background: #3a7a4c;
 		cursor: pointer;
 		border: 2px solid #fff;
-		box-shadow: 0 1px 4px rgba(61, 32, 85, 0.25);
+		box-shadow: 0 1px 4px rgba(58, 122, 76, 0.25);
 		transition: box-shadow 0.15s;
 	}
 
 	input[type='range']::-webkit-slider-thumb:hover {
-		box-shadow: 0 1px 6px rgba(61, 32, 85, 0.35);
+		box-shadow: 0 1px 6px rgba(58, 122, 76, 0.35);
 	}
 
 	input[type='range']::-moz-range-thumb {
 		width: 14px;
 		height: 14px;
 		border-radius: 50%;
-		background: #3d2055;
+		background: #3a7a4c;
 		cursor: pointer;
 		border: 2px solid #fff;
-		box-shadow: 0 1px 4px rgba(61, 32, 85, 0.25);
+		box-shadow: 0 1px 4px rgba(58, 122, 76, 0.25);
 	}
 
 	footer {
@@ -701,10 +688,6 @@
 
 		.lang-switcher {
 			align-self: flex-start;
-		}
-
-		h1 {
-			font-size: 1.3rem;
 		}
 
 		.sheet-music {

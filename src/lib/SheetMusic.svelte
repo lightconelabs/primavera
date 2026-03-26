@@ -92,18 +92,18 @@
 		stroke: #3a3530;
 	}
 
-	/* Note hover: aubergine accent */
+	/* Note hover: spring green accent */
 	.sheet-music-container :global(.abcjs-note:hover path),
 	.sheet-music-container :global(.abcjs-note:hover circle) {
-		fill: #5a3478 !important;
+		fill: #3a7a4c !important;
 		cursor: pointer;
 	}
 
-	/* Active/highlighted note: warm rose with glow */
+	/* Active/highlighted note: cherry blossom pink with glow */
 	.sheet-music-container :global(.abcjs-note.abcjs-highlight path),
 	.sheet-music-container :global(.abcjs-note.abcjs-highlight circle) {
-		fill: #c4687a !important;
-		filter: drop-shadow(0 0 4px rgba(196, 104, 122, 0.35));
+		fill: #d4849a !important;
+		filter: drop-shadow(0 0 4px rgba(212, 132, 154, 0.35));
 		transition: fill 0.15s ease;
 	}
 </style>
