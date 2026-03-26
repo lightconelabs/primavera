@@ -5,33 +5,33 @@
 import { midiToFrequency } from './music';
 
 let audioContext: AudioContext | null = null;
+let unlocked = false;
 
 function getAudioContext(): AudioContext {
 	if (!audioContext) {
 		audioContext = new AudioContext();
 	}
-	if (audioContext.state === 'suspended') {
-		audioContext.resume();
-	}
 	return audioContext;
 }
 
 /**
- * Unlock the AudioContext on first user interaction.
- * iOS Safari requires playing a silent buffer within a user gesture
- * to permanently unlock audio output.
+ * Ensure the AudioContext is running.
+ * Must be called within a user gesture event handler on iOS.
  */
-export function unlockAudio(): void {
+function ensureRunning(): void {
 	const ctx = getAudioContext();
 	if (ctx.state === 'suspended') {
 		ctx.resume();
 	}
-	// Play a silent buffer to unlock on iOS
-	const buffer = ctx.createBuffer(1, 1, ctx.sampleRate);
-	const source = ctx.createBufferSource();
-	source.buffer = buffer;
-	source.connect(ctx.destination);
-	source.start(0);
+	if (!unlocked) {
+		// Play a silent buffer to unlock on iOS WebKit
+		const buffer = ctx.createBuffer(1, 1, ctx.sampleRate);
+		const source = ctx.createBufferSource();
+		source.buffer = buffer;
+		source.connect(ctx.destination);
+		source.start(0);
+		unlocked = true;
+	}
 }
 
 /**
@@ -39,6 +39,7 @@ export function unlockAudio(): void {
  * Returns a promise that resolves when the note finishes.
  */
 export function playNote(midi: number, durationSec: number = 0.5): Promise<void> {
+	ensureRunning();
 	const ctx = getAudioContext();
 	const freq = midiToFrequency(midi);
 	const now = ctx.currentTime;

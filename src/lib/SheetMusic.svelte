@@ -17,6 +17,23 @@
 	let visualObj: abcjs.TuneObject | null = null;
 	let timingCallbacks: abcjs.TimingCallbacks | null = null;
 
+	function handleNoteClick(e: Event) {
+		// Walk up from the clicked element to find the note group with abcjs-n{index} class
+		let el = e.target as Element | null;
+		while (el && el !== containerEl) {
+			const classes = el.getAttribute('class') ?? '';
+			const match = classes.match(/abcjs-n(\d+)/);
+			if (match) {
+				const noteIndex = parseInt(match[1], 10);
+				if (exercise.notes[noteIndex]) {
+					playNote(exercise.notes[noteIndex].midi, 0.4);
+				}
+				return;
+			}
+			el = el.parentElement;
+		}
+	}
+
 	function render() {
 		if (!containerEl) return;
 
@@ -30,18 +47,16 @@
 			responsive: 'resize',
 			staffwidth,
 			paddingtop: 0,
-			paddingbottom: 0,
-			clickListener: (_abcElem, _tuneNumber, classes) => {
-				const match = classes.match(/abcjs-n(\d+)/);
-				if (match) {
-					const noteIndex = parseInt(match[1], 10);
-					if (exercise.notes[noteIndex]) {
-						playNote(exercise.notes[noteIndex].midi, 0.4);
-					}
-				}
-			}
+			paddingbottom: 0
 		});
 		visualObj = result[0] ?? null;
+
+		// Attach native click/touch handlers directly to note elements
+		// This preserves the user gesture chain on iOS, unlike abcjs's clickListener
+		containerEl.querySelectorAll('.abcjs-note').forEach((noteEl) => {
+			noteEl.addEventListener('click', handleNoteClick);
+			noteEl.addEventListener('touchend', handleNoteClick);
+		});
 	}
 
 	/** Highlight a specific note by index using CSS classes added by abcjs */

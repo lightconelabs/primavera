@@ -5,7 +5,7 @@
 	import { localizeHref, getLocale, locales } from '$lib/paraglide/runtime.js';
 	import SheetMusic from '$lib/SheetMusic.svelte';
 	import { generateExercise, type Exercise, type ExerciseSettings, DEFAULT_SETTINGS } from '$lib/music';
-	import { playSequence, unlockAudio } from '$lib/audio';
+	import { playSequence } from '$lib/audio';
 	import { loadSettings, saveSettings } from '$lib/store';
 
 	let settings: ExerciseSettings = $state({ ...DEFAULT_SETTINGS });
@@ -17,15 +17,6 @@
 	onMount(() => {
 		settings = loadSettings();
 		exercise = generateExercise(settings);
-
-		// Mobile browsers require AudioContext to be unlocked on a direct user gesture
-		const unlock = () => {
-			unlockAudio();
-			document.removeEventListener('touchstart', unlock);
-			document.removeEventListener('click', unlock);
-		};
-		document.addEventListener('touchstart', unlock, { once: true });
-		document.addEventListener('click', unlock, { once: true });
 	});
 
 	function generate() {
