@@ -3,7 +3,7 @@
 
 # Primavera
 
-Primavera is an online tool for practicing sight-reading and sight-singing.
+Primavera is an online tool for practicing sight-reading.
 
 ![Primavera demo](assets/demo.gif)
 
