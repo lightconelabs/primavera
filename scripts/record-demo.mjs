@@ -90,10 +90,20 @@ await newExBtn.click();
 await page.waitForTimeout(1500);
 
 // --- Scene 5: Hover over notes to show highlight ---
-const noteEls = page.locator('.abcjs-note');
-const count = await noteEls.count();
-for (let i = 0; i < Math.min(8, count); i++) {
-	await noteEls.nth(i).hover({ force: true, timeout: 3000 });
+// Use mouse.move with bounding boxes since Playwright's hover()
+// doesn't reliably trigger CSS :hover on absolutely-positioned SVG elements.
+const noteBoxes = await page.evaluate(() => {
+	const notes = document.querySelectorAll('g.abcjs-note');
+	return Array.from(notes).map((g) => {
+		const head = g.querySelector('path.abcjs-notehead') ?? g.querySelector('path');
+		if (!head) return null;
+		const r = head.getBoundingClientRect();
+		return { x: r.x + r.width / 2, y: r.y + r.height / 2 };
+	}).filter(Boolean);
+});
+
+for (let i = 0; i < Math.min(8, noteBoxes.length); i++) {
+	await page.mouse.move(noteBoxes[i].x, noteBoxes[i].y);
 	await page.waitForTimeout(500);
 }
 
