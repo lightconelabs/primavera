@@ -4,11 +4,14 @@
  */
 
 import { detectPitch } from './pitch';
-import { frequencyToMidi } from './music';
 
 export interface PitchResult {
-	/** Detected MIDI note number, or null if no pitch */
+	/** Detected MIDI note number (rounded), or null if no pitch */
 	midi: number | null;
+	/** Exact MIDI value (with fractional part for cents), or null */
+	exactMidi: number | null;
+	/** Cents deviation from nearest note (-50 to +50), or null */
+	cents: number | null;
 	/** Detected frequency in Hz, or null */
 	frequency: number | null;
 }
@@ -20,6 +23,7 @@ let analyser: AnalyserNode | null = null;
 let mediaStream: MediaStream | null = null;
 let rafId: number | null = null;
 let callback: PitchCallback | null = null;
+let paused = false;
 
 function getAudioContext(): AudioContext {
 	if (!audioContext) {
@@ -31,6 +35,7 @@ function getAudioContext(): AudioContext {
 /** Start listening for pitch from the microphone. */
 export async function startListening(onPitch: PitchCallback): Promise<void> {
 	callback = onPitch;
+	paused = false;
 
 	const ctx = getAudioContext();
 	if (ctx.state === 'suspended') {
@@ -58,16 +63,34 @@ export async function startListening(onPitch: PitchCallback): Promise<void> {
 function poll() {
 	if (!analyser || !callback) return;
 
-	const buffer = new Float32Array(analyser.fftSize);
-	analyser.getFloatTimeDomainData(buffer);
+	if (!paused) {
+		const buffer = new Float32Array(analyser.fftSize);
+		analyser.getFloatTimeDomainData(buffer);
 
-	const ctx = getAudioContext();
-	const frequency = detectPitch(buffer, ctx.sampleRate);
-	const midi = frequency !== null ? frequencyToMidi(frequency) : null;
+		const ctx = getAudioContext();
+		const frequency = detectPitch(buffer, ctx.sampleRate);
 
-	callback({ midi, frequency });
+		if (frequency !== null) {
+			const exactMidi = 69 + 12 * Math.log2(frequency / 440);
+			const midi = Math.round(exactMidi);
+			const cents = Math.round((exactMidi - midi) * 100);
+			callback({ midi, exactMidi, cents, frequency });
+		} else {
+			callback({ midi: null, exactMidi: null, cents: null, frequency: null });
+		}
+	}
 
 	rafId = requestAnimationFrame(poll);
+}
+
+/** Temporarily pause pitch detection (e.g., while playing reference audio). */
+export function pauseListening(): void {
+	paused = true;
+}
+
+/** Resume pitch detection after a pause. */
+export function resumeListening(): void {
+	paused = false;
 }
 
 /** Stop listening and release the microphone. */
@@ -82,6 +105,7 @@ export function stopListening(): void {
 	}
 	analyser = null;
 	callback = null;
+	paused = false;
 }
 
 /** Check if the browser supports getUserMedia. */

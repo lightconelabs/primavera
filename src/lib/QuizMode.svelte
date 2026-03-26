@@ -1,9 +1,10 @@
 <script lang="ts">
+	import { onDestroy } from 'svelte';
 	import { m } from '$lib/paraglide/messages.js';
 	import type { Exercise, NoteName } from './music';
-	import { NOTE_NAMES } from './music';
+	import { NOTE_NAMES, midiToFrequency } from './music';
 	import { playNote } from './audio';
-	import { startListening, stopListening, isMicSupported } from './microphone';
+	import { startListening, stopListening, pauseListening, resumeListening, isMicSupported } from './microphone';
 	import type { PitchResult } from './microphone';
 
 	interface Props {
@@ -14,16 +15,24 @@
 
 	let { exercise, onComplete, onNoteChange }: Props = $props();
 
-	/**
-	 * Map MIDI note number to a diatonic note name (ignoring octave).
-	 * Uses the chromatic scale: C, C#, D, D#, E, F, F#, G, G#, A, A#, B
-	 * We map sharps/flats to their natural neighbor for name-only comparison.
-	 */
 	const CHROMATIC_TO_NAME: NoteName[] = ['C', 'C', 'D', 'D', 'E', 'F', 'F', 'G', 'G', 'A', 'A', 'B'];
 
 	function midiToNoteName(midi: number): NoteName {
 		const index = ((midi % 12) + 12) % 12;
 		return CHROMATIC_TO_NAME[index];
+	}
+
+	// Match tolerance: accept if detected note name matches expected,
+	// allowing ±1 semitone for accidentals (e.g., singing F# when F# is expected
+	// but detected as F or G due to pitch wobble)
+	const SEMITONE_TOLERANCE = 1;
+
+	function isNoteMatch(detectedMidi: number, expectedMidi: number): boolean {
+		// Compare note names, collapsing octaves: match if within ±1 semitone mod 12
+		const detectedClass = ((detectedMidi % 12) + 12) % 12;
+		const expectedClass = ((expectedMidi % 12) + 12) % 12;
+		const diff = Math.abs(detectedClass - expectedClass);
+		return diff <= SEMITONE_TOLERANCE || diff >= (12 - SEMITONE_TOLERANCE);
 	}
 
 	// Quiz state
@@ -34,8 +43,12 @@
 	let bestStreak = $state(0);
 	let feedback = $state<'correct' | 'wrong' | null>(null);
 	let detectedNoteName = $state<string | null>(null);
+	let centsDeviation = $state<number | null>(null);
 	let errorMessage = $state<string | null>(null);
 	let completed = $state(false);
+
+	// Tuning gauge: how far from the expected note (-50 to +50 cents, or wider)
+	let gaugeOffset = $state(0); // -1 to 1 range for the visual gauge
 
 	// Stability tracking: require same MIDI for 5 consecutive frames
 	const STABILITY_THRESHOLD = 5;
@@ -50,6 +63,8 @@
 		bestStreak = 0;
 		feedback = null;
 		detectedNoteName = null;
+		centsDeviation = null;
+		gaugeOffset = 0;
 		errorMessage = null;
 		completed = false;
 		stableCount = 0;
@@ -84,12 +99,24 @@
 	function onPitch(result: PitchResult) {
 		if (!active || processing || completed) return;
 
-		const { midi } = result;
-		if (midi === null) {
-			// No pitch detected, reset stability
+		const { midi, exactMidi, cents, frequency } = result;
+		if (midi === null || exactMidi === null || frequency === null) {
 			stableCount = 0;
 			lastMidi = null;
 			return;
+		}
+
+		detectedNoteName = midiToNoteName(midi);
+		centsDeviation = cents;
+
+		// Calculate gauge offset relative to the EXPECTED note
+		const expected = exercise.notes[currentIndex];
+		if (expected) {
+			const expectedFreq = midiToFrequency(expected.midi);
+			// Cents from expected note (not just nearest note)
+			const centsFromExpected = 1200 * Math.log2(frequency / expectedFreq);
+			// Clamp to -100..100 range, normalize to -1..1
+			gaugeOffset = Math.max(-1, Math.min(1, centsFromExpected / 100));
 		}
 
 		if (midi === lastMidi) {
@@ -99,17 +126,14 @@
 			stableCount = 1;
 		}
 
-		detectedNoteName = midiToNoteName(midi);
-
 		if (stableCount >= STABILITY_THRESHOLD) {
-			// Stable pitch detected, evaluate
 			stableCount = 0;
 			lastMidi = null;
-			evaluateNote(midiToNoteName(midi));
+			evaluateNote(midi);
 		}
 	}
 
-	async function evaluateNote(detected: NoteName) {
+	async function evaluateNote(detectedMidi: number) {
 		if (processing || completed) return;
 		processing = true;
 
@@ -119,8 +143,7 @@
 			return;
 		}
 
-		if (detected === expected.name) {
-			// Correct
+		if (isNoteMatch(detectedMidi, expected.midi)) {
 			feedback = 'correct';
 			score++;
 			streak++;
@@ -130,7 +153,6 @@
 
 			const nextIndex = currentIndex + 1;
 			if (nextIndex >= exercise.notes.length) {
-				// Quiz complete
 				completed = true;
 				feedback = null;
 				stop();
@@ -139,15 +161,19 @@
 				currentIndex = nextIndex;
 				onNoteChange(nextIndex);
 				feedback = null;
+				gaugeOffset = 0;
+				centsDeviation = null;
+				detectedNoteName = null;
 			}
 		} else {
-			// Wrong
 			feedback = 'wrong';
 			streak = 0;
 
-			// Play the correct note so the student learns
+			// Pause mic before playing reference note to avoid self-detection
+			pauseListening();
 			await playNote(expected.midi, 0.8);
 			await pause(400);
+			resumeListening();
 			feedback = null;
 		}
 
@@ -161,12 +187,14 @@
 	async function hearCurrentNote() {
 		const note = exercise.notes[currentIndex];
 		if (note) {
+			// Pause mic so playback doesn't get detected as singing
+			pauseListening();
 			await playNote(note.midi, 0.8);
+			await pause(200);
+			resumeListening();
 		}
 	}
 
-	// Clean up on destroy
-	import { onDestroy } from 'svelte';
 	onDestroy(() => {
 		if (active) stop();
 	});
@@ -203,6 +231,23 @@
 				</div>
 			</div>
 
+			<!-- Tuning gauge -->
+			<div class="tuning-gauge">
+				<div class="gauge-track">
+					<div class="gauge-center"></div>
+					<div class="gauge-needle" style="transform: translateX({gaugeOffset * 100}%)"></div>
+				</div>
+				<div class="gauge-labels">
+					<span class="gauge-label flat">&#9837;</span>
+					{#if detectedNoteName}
+						<span class="gauge-note" class:in-tune={Math.abs(gaugeOffset) < 0.15}>{detectedNoteName}</span>
+					{:else}
+						<span class="gauge-note silent">-</span>
+					{/if}
+					<span class="gauge-label sharp">&#9839;</span>
+				</div>
+			</div>
+
 			<div class="feedback-zone">
 				{#if feedback === 'correct'}
 					<p class="quiz-feedback correct">{m.quiz_correct()}</p>
@@ -212,10 +257,6 @@
 					<p class="quiz-feedback placeholder">&nbsp;</p>
 				{/if}
 			</div>
-
-			{#if detectedNoteName}
-				<p class="quiz-detected">{m.quiz_detected_note({ note: detectedNoteName })}</p>
-			{/if}
 
 			<div class="quiz-actions">
 				<button class="quiz-btn quiz-hear" onclick={hearCurrentNote}>
@@ -351,6 +392,77 @@
 
 	.stat-pill.best .stat-value {
 		color: #a08030;
+	}
+
+	/* ---- Tuning gauge ---- */
+
+	.tuning-gauge {
+		width: 100%;
+		max-width: 260px;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: 0.3rem;
+	}
+
+	.gauge-track {
+		position: relative;
+		width: 100%;
+		height: 8px;
+		background: linear-gradient(90deg, #d4849a 0%, #e8e0d4 35%, #3a7a4c 50%, #e8e0d4 65%, #d4849a 100%);
+		border-radius: 4px;
+		overflow: hidden;
+	}
+
+	.gauge-center {
+		position: absolute;
+		left: 50%;
+		top: -1px;
+		width: 2px;
+		height: 10px;
+		background: #3a7a4c;
+		transform: translateX(-50%);
+		border-radius: 1px;
+	}
+
+	.gauge-needle {
+		position: absolute;
+		left: calc(50% - 6px);
+		top: -3px;
+		width: 12px;
+		height: 14px;
+		background: #2d2a26;
+		border-radius: 3px;
+		transition: transform 0.1s ease-out;
+		box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+	}
+
+	.gauge-labels {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		width: 100%;
+		padding: 0 0.25rem;
+	}
+
+	.gauge-label {
+		font-size: 0.85rem;
+		color: #9a8e82;
+	}
+
+	.gauge-note {
+		font-size: 1rem;
+		font-weight: 700;
+		color: #2d2a26;
+		transition: color 0.15s;
+	}
+
+	.gauge-note.in-tune {
+		color: #3a7a4c;
+	}
+
+	.gauge-note.silent {
+		color: #c4b8aa;
 	}
 
 	/* ---- Feedback zone ---- */
