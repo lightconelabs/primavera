@@ -54,7 +54,7 @@
 			aria-selected={mode === 'quiz'}
 			onclick={() => onModeChange('quiz')}
 		>
-			<span class="toggle-icon">&#9834;</span>
+			<svg class="toggle-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="14" height="14"><path d="M6 18.5a3.5 3.5 0 1 0 7 0c0-1.57.92-2.52 2.04-3.46C16.69 13.68 18 12.33 18 10a6 6 0 0 0-12 0"/><path d="M6 14a2 2 0 0 0 2 2h.5"/></svg>
 			{m.quiz_mode()}
 		</button>
 
