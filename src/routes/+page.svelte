@@ -152,10 +152,15 @@
 
 			<div class="sheet-scroll">
 				<SheetMusic {exercise} {highlightIndex} onNoteClick={mode === 'quiz' ? async (noteIndex) => {
+					const currentExercise = exercise;
+					if (!currentExercise) return;
 					pauseListening();
-					await playNote(exercise.notes[noteIndex].midi, 0.4);
-					await new Promise(r => setTimeout(r, 200));
-					resumeListening();
+					try {
+						await playNote(currentExercise.notes[noteIndex].midi, 0.4);
+						await new Promise((r) => setTimeout(r, 200));
+					} finally {
+						resumeListening();
+					}
 				} : undefined} />
 			</div>
 

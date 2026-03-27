@@ -90,8 +90,6 @@ await newExBtn.click();
 await page.waitForTimeout(1500);
 
 // --- Scene 5: Hover over notes to show highlight ---
-// Use mouse.move with bounding boxes since Playwright's hover()
-// doesn't reliably trigger CSS :hover on absolutely-positioned SVG elements.
 const noteBoxes = await page.evaluate(() => {
 	const notes = document.querySelectorAll('g.abcjs-note');
 	return Array.from(notes).map((g) => {
@@ -109,7 +107,33 @@ for (let i = 0; i < Math.min(8, noteBoxes.length); i++) {
 
 // Move mouse away
 await page.mouse.move(500, 650);
+await page.waitForTimeout(1000);
+
+// --- Scene 6: Switch to Quiz mode ---
+const quizTab = page.locator('.toggle-btn').filter({ hasText: 'Quiz' });
+await quizTab.click();
 await page.waitForTimeout(1500);
+
+// Show the Start Quiz button
+const startQuizBtn = page.locator('.quiz-btn.quiz-start');
+await startQuizBtn.waitFor({ state: 'visible' });
+await page.waitForTimeout(2000);
+
+// --- Scene 7: Switch back to Practice and play the exercise ---
+const practiceTab = page.locator('.toggle-btn').filter({ hasText: 'Practice' });
+await practiceTab.click();
+await page.waitForTimeout(1000);
+
+const playBtn = page.locator('button.btn.secondary');
+await playBtn.click();
+
+// Wait for playback to finish (16 notes at 80 BPM = 12s, but let's just wait a reasonable time)
+await page.waitForTimeout(8000);
+
+// --- Scene 8: Switch language to NL ---
+const nlLink = page.locator('.lang-switcher a').filter({ hasText: 'NL' });
+await nlLink.click();
+await page.waitForTimeout(3000);
 
 // Finalize
 await context.close();

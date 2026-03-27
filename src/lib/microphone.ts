@@ -76,8 +76,9 @@ function poll() {
 		return;
 	}
 
-	analyser.getFloatTimeDomainData(inputBuffer);
-	const [pitch, clarity] = detector.findPitch(inputBuffer, ctx.sampleRate);
+	const pitchBuffer = inputBuffer as Float32Array<ArrayBuffer>;
+	analyser.getFloatTimeDomainData(pitchBuffer);
+	const [pitch, clarity] = detector.findPitch(pitchBuffer, ctx.sampleRate);
 
 	if (clarity >= MIN_CLARITY && pitch > 60 && pitch < 1200) {
 		const exactMidi = 69 + 12 * Math.log2(pitch / 440);

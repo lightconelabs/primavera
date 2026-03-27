@@ -1,6 +1,5 @@
 <script lang="ts">
-	import { onMount, onDestroy } from 'svelte';
-	import abcjs from 'abcjs';
+	import { onMount } from 'svelte';
 	import { m } from '$lib/paraglide/messages.js';
 	import type { Exercise } from './music';
 	import { exerciseToAbc } from './abc';
@@ -15,18 +14,28 @@
 	let { exercise, highlightIndex = -1, onNoteClick }: Props = $props();
 
 	let containerEl: HTMLDivElement;
-	let visualObj: abcjs.TuneObject | null = null;
-	let timingCallbacks: abcjs.TimingCallbacks | null = null;
+	let abcjsModulePromise: Promise<typeof import('abcjs')> | null = null;
+	let renderToken = 0;
 
-	function render() {
+	function getAbcjs() {
+		if (!abcjsModulePromise) {
+			abcjsModulePromise = import('abcjs');
+		}
+		return abcjsModulePromise;
+	}
+
+	async function render() {
 		if (!containerEl) return;
+		const token = ++renderToken;
+		const abcjs = await getAbcjs();
+		if (!containerEl || token !== renderToken) return;
 
 		const { abc, noteCharPositions } = exerciseToAbc(exercise);
 		const staffwidth = Math.max(500, exercise.notes.length * 40);
 		// Set max-width so the container centers at the natural staff width
 		// while responsive:'resize' still allows it to shrink on mobile
 		containerEl.style.maxWidth = `${staffwidth + 60}px`;
-		const result = abcjs.renderAbc(containerEl, abc, {
+		abcjs.renderAbc(containerEl, abc, {
 			add_classes: true,
 			responsive: 'resize',
 			staffwidth,
@@ -51,7 +60,6 @@
 				}
 			}
 		});
-		visualObj = result[0] ?? null;
 	}
 
 	/** Highlight a specific note by index using CSS classes added by abcjs */

@@ -16,23 +16,32 @@
 	let { exercise, onComplete, onNoteChange }: Props = $props();
 
 	const CHROMATIC_TO_NAME: NoteName[] = ['C', 'C', 'D', 'D', 'E', 'F', 'F', 'G', 'G', 'A', 'A', 'B'];
+	let advanceTimeoutId: ReturnType<typeof setTimeout> | null = null;
+	let resumeTimeoutId: ReturnType<typeof setTimeout> | null = null;
+	let sessionId = 0;
 
 	function midiToNoteName(midi: number): NoteName {
 		const index = ((midi % 12) + 12) % 12;
 		return CHROMATIC_TO_NAME[index];
 	}
 
-	// Match tolerance: accept if detected note name matches expected,
-	// allowing ±1 semitone for accidentals (e.g., singing F# when F# is expected
-	// but detected as F or G due to pitch wobble)
-	const SEMITONE_TOLERANCE = 1;
+	function pitchClass(midi: number): number {
+		return ((midi % 12) + 12) % 12;
+	}
 
 	function isNoteMatch(detectedMidi: number, expectedMidi: number): boolean {
-		// Compare note names, collapsing octaves: match if within ±1 semitone mod 12
-		const detectedClass = ((detectedMidi % 12) + 12) % 12;
-		const expectedClass = ((expectedMidi % 12) + 12) % 12;
-		const diff = Math.abs(detectedClass - expectedClass);
-		return diff <= SEMITONE_TOLERANCE || diff >= (12 - SEMITONE_TOLERANCE);
+		return pitchClass(detectedMidi) === pitchClass(expectedMidi);
+	}
+
+	function clearPendingTimeouts() {
+		if (advanceTimeoutId !== null) {
+			clearTimeout(advanceTimeoutId);
+			advanceTimeoutId = null;
+		}
+		if (resumeTimeoutId !== null) {
+			clearTimeout(resumeTimeoutId);
+			resumeTimeoutId = null;
+		}
 	}
 
 	// Quiz state
@@ -76,6 +85,7 @@
 		stableCount = 0;
 		lastMidi = null;
 		processingUntil = 0;
+		clearPendingTimeouts();
 	}
 
 	async function start() {
@@ -96,10 +106,13 @@
 	}
 
 	function stop() {
+		sessionId++;
+		clearPendingTimeouts();
 		stopListening();
 		active = false;
 		stableCount = 0;
 		lastMidi = null;
+		processingUntil = 0;
 	}
 
 	function onPitch(result: PitchResult) {
@@ -153,6 +166,7 @@
 
 		const expected = exercise.notes[currentIndex];
 		if (!expected) return;
+		const currentSession = sessionId;
 
 		if (isNoteMatch(detectedMidi, expected.midi)) {
 			feedback = 'correct';
@@ -164,7 +178,8 @@
 
 			// Block evaluation for 800ms, then advance
 			processingUntil = Date.now() + 800;
-			setTimeout(() => {
+			advanceTimeoutId = setTimeout(() => {
+				if (currentSession !== sessionId) return;
 				const nextIndex = currentIndex + 1;
 				if (nextIndex >= exercise.notes.length) {
 					completed = true;
@@ -180,6 +195,7 @@
 					centsDeviation = null;
 					detectedNoteName = null;
 				}
+				advanceTimeoutId = null;
 			}, 700);
 		} else {
 			feedback = 'wrong';
@@ -189,9 +205,12 @@
 			processingUntil = Date.now() + 1500;
 			pauseListening();
 			playNote(expected.midi, 0.8).finally(() => {
-				setTimeout(() => {
+				if (currentSession !== sessionId) return;
+				resumeTimeoutId = setTimeout(() => {
+					if (currentSession !== sessionId) return;
 					resumeListening();
 					feedback = null;
+					resumeTimeoutId = null;
 				}, 400);
 			});
 		}
@@ -215,7 +234,7 @@
 	}
 
 	onDestroy(() => {
-		if (active) stop();
+		stop();
 	});
 </script>
 
@@ -225,85 +244,41 @@
 	{/if}
 
 	{#if !active && !completed}
-		<div class="quiz-idle">
-			<button class="quiz-btn quiz-start" onclick={start}>
-				<span class="mic-icon">&#9835;</span>
-				{m.quiz_start()}
-			</button>
-		</div>
+		<button class="start-btn" onclick={start}>
+			<svg class="start-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="22"/></svg>
+			{m.quiz_start()}
+		</button>
 	{:else if active && !completed}
-		<div class="quiz-active">
-			<div class="listening-badge">
-				<span class="pulse-dot"></span>
-				<span class="listening-text">{m.quiz_listen()}</span>
-			</div>
-
-			<div class="quiz-stats">
-				<div class="stat-pill">
-					<span class="stat-value">{score}<span class="stat-sep">/</span>{exercise.notes.length}</span>
-				</div>
-				<div class="stat-pill streak">
-					<span class="stat-value">{streak}</span>
-				</div>
-				<div class="stat-pill best">
-					<span class="stat-value">{bestStreak}</span>
-				</div>
-			</div>
-
-			<!-- Tuning gauge -->
-			<div class="tuning-gauge">
-				<div class="gauge-track">
-					<div class="gauge-center"></div>
-					<div class="gauge-needle" style="left: calc({50 + gaugeOffset * 45}% - 6px)"></div>
-				</div>
-				<div class="gauge-labels">
-					<span class="gauge-label flat">&#9837;</span>
-					<span class="gauge-note" class:in-tune={Math.abs(gaugeOffset) < 0.15}>
-						{exercise.notes[currentIndex]?.name ?? '-'}
-					</span>
-					<span class="gauge-label sharp">&#9839;</span>
-				</div>
-				{#if detectedNoteName}
-					<p class="gauge-heard">{m.quiz_detected_note({ note: detectedNoteName })}</p>
-				{/if}
-			</div>
-
-			<div class="feedback-zone">
-				{#if feedback === 'correct'}
-					<p class="quiz-feedback correct">{m.quiz_correct()}</p>
-				{:else if feedback === 'wrong'}
-					<p class="quiz-feedback wrong">{m.quiz_wrong()}</p>
-				{:else}
-					<p class="quiz-feedback placeholder">&nbsp;</p>
-				{/if}
-			</div>
-
-			<div class="quiz-actions">
-				<button class="quiz-btn quiz-hear" onclick={hearCurrentNote}>
-					{m.quiz_hear_note()}
+		<div class="quiz-live">
+			<!-- Top row: progress + action icons -->
+			<div class="topbar">
+				<span class="progress">{score}<span class="dim">/</span>{exercise.notes.length}</span>
+				{#if streak > 1}<span class="streak">{streak}x</span>{/if}
+				<span class="spacer"></span>
+				<button class="icon-btn" onclick={hearCurrentNote} title={m.quiz_hear_note()}>
+					<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
 				</button>
-				<button class="quiz-btn quiz-stop" onclick={stop}>
-					{m.quiz_stop()}
+				<button class="icon-btn danger" onclick={stop} title={m.quiz_stop()}>
+					<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="6" width="12" height="12" rx="1"/></svg>
 				</button>
+			</div>
+
+			<!-- Gauge: the hero -->
+			<div class="gauge">
+				<div class="gauge-bar">
+					<div class="gauge-dot" class:tuned={Math.abs(gaugeOffset) < 0.15} class:err={feedback === 'wrong'} style="left: {50 + gaugeOffset * 45}%"></div>
+					<div class="gauge-mid"></div>
+				</div>
+				<span class="gauge-note" class:correct={feedback === 'correct'} class:err={feedback === 'wrong'}>
+					{exercise.notes[currentIndex]?.name ?? '-'}
+				</span>
 			</div>
 		</div>
 	{:else if completed}
-		<div class="quiz-complete">
-			<div class="complete-badge">
-				<span class="complete-check">&#10003;</span>
-			</div>
-			<p class="quiz-complete-msg">{m.quiz_complete()}</p>
-			<div class="quiz-stats">
-				<div class="stat-pill">
-					<span class="stat-value">{score}<span class="stat-sep">/</span>{exercise.notes.length}</span>
-				</div>
-				<div class="stat-pill best">
-					<span class="stat-value">{bestStreak}</span>
-				</div>
-			</div>
-			<button class="quiz-btn quiz-start" onclick={start}>
-				{m.quiz_start()}
-			</button>
+		<div class="done">
+			<span class="done-score">{score}<span class="dim">/</span>{exercise.notes.length}</span>
+			<p class="done-msg">{m.quiz_complete()}</p>
+			<button class="start-btn" onclick={start}>{m.quiz_start()}</button>
 		</div>
 	{/if}
 </div>
@@ -313,340 +288,185 @@
 		display: flex;
 		flex-direction: column;
 		align-items: center;
-		gap: 0.5rem;
-		padding: 0.75rem 1rem 1rem;
+		padding: 0.75rem 1.25rem 1rem;
 	}
 
 	.quiz-error {
 		color: #b33326;
-		font-size: 0.85rem;
-		font-weight: 500;
-		background: rgba(179, 51, 38, 0.06);
-		padding: 0.5rem 0.85rem;
-		border-radius: 8px;
-	}
-
-	.quiz-idle {
-		padding: 0.5rem 0;
-	}
-
-	.quiz-active,
-	.quiz-complete {
-		display: flex;
-		flex-direction: column;
-		align-items: center;
-		gap: 0.65rem;
-		width: 100%;
-	}
-
-	/* ---- Listening badge ---- */
-
-	.listening-badge {
-		display: flex;
-		align-items: center;
-		gap: 0.45rem;
-		padding: 0.3rem 0.75rem;
-		background: rgba(58, 122, 76, 0.06);
-		border-radius: 20px;
-	}
-
-	.pulse-dot {
-		width: 8px;
-		height: 8px;
-		border-radius: 50%;
-		background: #d4849a;
-		animation: pulse 1.8s ease-in-out infinite;
-	}
-
-	@keyframes pulse {
-		0%, 100% { opacity: 0.4; transform: scale(0.85); }
-		50% { opacity: 1; transform: scale(1.15); }
-	}
-
-	.listening-text {
-		font-size: 0.78rem;
-		font-weight: 600;
-		color: #3a7a4c;
-		letter-spacing: 0.03em;
-	}
-
-	/* ---- Stats pills ---- */
-
-	.quiz-stats {
-		display: flex;
-		gap: 0.5rem;
-	}
-
-	.stat-pill {
-		display: flex;
-		align-items: center;
-		gap: 0.3rem;
-		padding: 0.25rem 0.65rem;
-		background: rgba(58, 122, 76, 0.05);
-		border-radius: 8px;
-	}
-
-	.stat-value {
-		font-size: 0.85rem;
-		font-weight: 700;
-		color: #3a7a4c;
-	}
-
-	.stat-sep {
-		opacity: 0.35;
-		font-weight: 400;
-		margin: 0 0.05rem;
-	}
-
-	.stat-pill.streak {
-		background: rgba(212, 132, 154, 0.08);
-	}
-
-	.stat-pill.streak .stat-value {
-		color: #d4849a;
-	}
-
-	.stat-pill.best {
-		background: rgba(180, 142, 58, 0.08);
-	}
-
-	.stat-pill.best .stat-value {
-		color: #a08030;
-	}
-
-	/* ---- Tuning gauge ---- */
-
-	.tuning-gauge {
-		width: 100%;
-		max-width: 260px;
-		display: flex;
-		flex-direction: column;
-		align-items: center;
-		gap: 0.3rem;
-	}
-
-	.gauge-track {
-		position: relative;
-		width: 100%;
-		height: 8px;
-		background: linear-gradient(90deg, #d4849a 0%, #e8e0d4 35%, #3a7a4c 50%, #e8e0d4 65%, #d4849a 100%);
-		border-radius: 4px;
-	}
-
-	.gauge-center {
-		position: absolute;
-		left: 50%;
-		top: -1px;
-		width: 2px;
-		height: 10px;
-		background: #3a7a4c;
-		transform: translateX(-50%);
-		border-radius: 1px;
-	}
-
-	.gauge-needle {
-		position: absolute;
-		top: -3px;
-		width: 12px;
-		height: 14px;
-		background: #2d2a26;
-		border-radius: 3px;
-		transition: left 0.25s ease-out;
-		box-shadow: 0 1px 3px rgba(0,0,0,0.2);
-	}
-
-	.gauge-labels {
-		display: flex;
-		justify-content: space-between;
-		align-items: center;
-		width: 100%;
-		padding: 0 0.25rem;
-	}
-
-	.gauge-label {
-		font-size: 0.85rem;
-		color: #9a8e82;
-	}
-
-	.gauge-note {
-		font-size: 1rem;
-		font-weight: 700;
-		color: #2d2a26;
-		transition: color 0.15s;
-	}
-
-	.gauge-note.in-tune {
-		color: #3a7a4c;
-	}
-
-	.gauge-heard {
-		font-size: 0.75rem;
-		color: #9a8e82;
-		margin: 0;
-	}
-
-	/* ---- Feedback zone ---- */
-
-	.feedback-zone {
-		min-height: 2.2rem;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-	}
-
-	.quiz-feedback {
-		font-family: 'DM Serif Display', Georgia, serif;
-		font-size: 1.4rem;
-		font-weight: 400;
-		margin: 0;
-		line-height: 1;
-	}
-
-	.quiz-feedback.placeholder {
-		visibility: hidden;
-	}
-
-	.quiz-feedback.correct {
-		color: #2d8a4e;
-		animation: pop-in 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
-	}
-
-	.quiz-feedback.wrong {
-		color: #b33326;
-		animation: shake 0.4s cubic-bezier(0.36, 0.07, 0.19, 0.97);
-	}
-
-	@keyframes pop-in {
-		0% { opacity: 0; transform: scale(0.6); }
-		60% { opacity: 1; transform: scale(1.12); }
-		100% { transform: scale(1); }
-	}
-
-	@keyframes shake {
-		0%, 100% { transform: translateX(0); }
-		15% { transform: translateX(-6px); }
-		30% { transform: translateX(5px); }
-		45% { transform: translateX(-4px); }
-		60% { transform: translateX(3px); }
-		75% { transform: translateX(-2px); }
-	}
-
-	.quiz-detected {
 		font-size: 0.8rem;
-		color: #9a8e82;
-		margin: 0;
+		background: rgba(179, 51, 38, 0.06);
+		padding: 0.4rem 0.75rem;
+		border-radius: 8px;
+		margin-bottom: 0.5rem;
 	}
 
-	/* ---- Complete state ---- */
+	/* ---- Start / restart button ---- */
+	/* Matches .btn.secondary from the main page */
 
-	.complete-badge {
-		width: 2.5rem;
-		height: 2.5rem;
-		border-radius: 50%;
-		background: linear-gradient(135deg, #2d8a4e 0%, #3aaf62 100%);
-		display: flex;
+	.start-btn {
+		display: inline-flex;
 		align-items: center;
-		justify-content: center;
-		animation: pop-in 0.45s cubic-bezier(0.34, 1.56, 0.64, 1);
-	}
-
-	.complete-check {
-		color: #fff;
-		font-size: 1.2rem;
-		font-weight: 700;
-	}
-
-	.quiz-complete-msg {
-		font-family: 'DM Serif Display', Georgia, serif;
-		font-size: 1.2rem;
-		font-weight: 400;
-		color: #2d8a4e;
-		margin: 0;
-	}
-
-	/* ---- Actions & buttons ---- */
-
-	.quiz-actions {
-		display: flex;
-		gap: 0.5rem;
-		margin-top: 0.25rem;
-	}
-
-	.quiz-btn {
-		padding: 0.5rem 1.2rem;
+		gap: 0.4rem;
+		padding: 0.5rem 1.3rem;
 		border: none;
 		border-radius: 8px;
+		background: rgba(58, 122, 76, 0.07);
+		color: #3a7a4c;
 		font-family: 'DM Sans', sans-serif;
-		font-size: 0.82rem;
-		cursor: pointer;
+		font-size: 0.8rem;
 		font-weight: 600;
-		transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-		letter-spacing: 0.01em;
+		cursor: pointer;
+		transition: background 0.2s;
 	}
 
-	.quiz-btn:active {
-		transform: scale(0.97);
+	.start-btn:hover {
+		background: rgba(58, 122, 76, 0.12);
 	}
 
-	.quiz-start {
-		background: #3a7a4c;
-		color: #fff;
+	.start-btn:active { transform: scale(0.97); }
+
+	.start-icon { width: 15px; height: 15px; }
+
+	/* ---- Live quiz ---- */
+
+	.quiz-live, .done {
+		width: 100%;
+		max-width: 300px;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: 0.75rem;
+	}
+
+	/* ---- Top bar ---- */
+
+	.topbar {
+		width: 100%;
 		display: flex;
 		align-items: center;
 		gap: 0.4rem;
 	}
 
-	.quiz-start:hover {
-		background: #468f58;
-		box-shadow: 0 2px 10px rgba(58, 122, 76, 0.2);
+	.progress {
+		font-size: 0.8rem;
+		font-weight: 700;
+		color: #2d2a26;
 	}
 
-	.mic-icon {
-		font-size: 1rem;
+	.dim { opacity: 0.3; font-weight: 400; }
+
+	.streak {
+		font-size: 0.68rem;
+		font-weight: 700;
+		color: #d4849a;
+		background: rgba(212, 132, 154, 0.1);
+		padding: 0.1rem 0.4rem;
+		border-radius: 4px;
 	}
 
-	.quiz-stop {
-		background: rgba(179, 51, 38, 0.08);
-		color: #b33326;
+	.spacer { flex: 1; }
+
+	.icon-btn {
+		width: 30px;
+		height: 30px;
+		display: grid;
+		place-items: center;
+		border: 1px solid #e8e0d4;
+		border-radius: 6px;
+		background: transparent;
+		color: #3a7a4c;
+		cursor: pointer;
+		transition: background 0.15s, border-color 0.15s;
 	}
 
-	.quiz-stop:hover {
-		background: rgba(179, 51, 38, 0.14);
+	.icon-btn:hover {
+		background: rgba(58, 122, 76, 0.06);
+		border-color: #c4b8aa;
 	}
 
-	.quiz-hear {
-		background: rgba(58, 122, 76, 0.07);
+	.icon-btn:active { transform: scale(0.95); }
+
+	.icon-btn svg { width: 14px; height: 14px; }
+
+	.icon-btn.danger { color: #b33326; }
+	.icon-btn.danger:hover { background: rgba(179, 51, 38, 0.06); }
+
+	/* ---- Gauge ---- */
+
+	.gauge {
+		width: 100%;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: 0.5rem;
+	}
+
+	.gauge-bar {
+		position: relative;
+		width: 100%;
+		height: 4px;
+		border-radius: 2px;
+		background: #e8e0d4;
+	}
+
+	.gauge-mid {
+		position: absolute;
+		left: 50%;
+		top: -3px;
+		width: 2px;
+		height: 10px;
+		background: #3a7a4c;
+		opacity: 0.4;
+		transform: translateX(-50%);
+		border-radius: 1px;
+	}
+
+	.gauge-dot {
+		position: absolute;
+		top: 50%;
+		width: 14px;
+		height: 14px;
+		border-radius: 50%;
+		background: #9a8e82;
+		border: 2px solid #fff;
+		box-shadow: 0 1px 4px rgba(0,0,0,0.12);
+		transform: translate(-50%, -50%);
+		transition: left 0.2s ease-out, background 0.15s;
+	}
+
+	.gauge-dot.tuned { background: #3a7a4c; }
+	.gauge-dot.err { background: #b33326; }
+
+	.gauge-note {
+		font-family: 'DM Serif Display', Georgia, serif;
+		font-size: 2rem;
+		line-height: 1;
+		color: #2d2a26;
+		transition: color 0.15s;
+	}
+
+	.gauge-note.correct { color: #3a7a4c; }
+	.gauge-note.err { color: #b33326; }
+
+	/* ---- Done ---- */
+
+	.done-score {
+		font-family: 'DM Serif Display', Georgia, serif;
+		font-size: 1.6rem;
 		color: #3a7a4c;
 	}
 
-	.quiz-hear:hover {
-		background: rgba(58, 122, 76, 0.12);
+	.done-msg {
+		font-size: 0.8rem;
+		color: #9a8e82;
+		margin: 0;
 	}
 
 	/* ---- Responsive ---- */
 
 	@media (max-width: 600px) {
-		.quiz-mode {
-			padding: 0.5rem 0.75rem 0.75rem;
-		}
-
-		.quiz-stats {
-			flex-wrap: wrap;
-			justify-content: center;
-		}
-
-		.quiz-feedback {
-			font-size: 1.2rem;
-		}
-
-		.quiz-actions {
-			width: 100%;
-		}
-
-		.quiz-actions .quiz-btn {
-			flex: 1;
-			justify-content: center;
-			text-align: center;
-		}
+		.quiz-mode { padding: 0.5rem 0.75rem 0.75rem; }
+		.quiz-live, .done { max-width: none; }
+		.gauge-note { font-size: 1.6rem; }
 	}
 </style>
