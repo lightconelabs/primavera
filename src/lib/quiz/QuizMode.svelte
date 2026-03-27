@@ -24,8 +24,8 @@
 
 	const quiz = new QuizController({
 		getExercise: () => exercise,
-		onComplete,
-		onNoteChange,
+		onComplete: (score) => onComplete(score),
+		onNoteChange: (index) => onNoteChange(index),
 		micUnsupportedMsg: m.quiz_mic_unsupported,
 		micPermissionMsg: m.quiz_mic_permission
 	});

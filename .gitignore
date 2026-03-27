@@ -7,3 +7,5 @@ build/
 !.env.example
 .DS_Store
 *.png
+!assets/primavera-logo.png
+!static/primavera-logo.png
