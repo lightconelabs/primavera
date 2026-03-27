@@ -1,34 +1,31 @@
 /**
- * Microphone input and real-time pitch detection.
- * Connects getUserMedia to an AnalyserNode and polls for pitch using YIN.
- *
- * Uses setInterval instead of requestAnimationFrame for reliability —
- * RAF gets throttled/paused when the tab is inactive.
+ * Microphone input and real-time pitch detection using pitchy.
+ * Connects getUserMedia to an AnalyserNode and polls for pitch.
  */
 
-import { detectPitch } from './pitch';
+import { PitchDetector } from 'pitchy';
 
 export interface PitchResult {
-	/** Detected MIDI note number (rounded), or null if no pitch */
 	midi: number | null;
-	/** Exact MIDI value (with fractional part for cents), or null */
 	exactMidi: number | null;
-	/** Cents deviation from nearest note (-50 to +50), or null */
 	cents: number | null;
-	/** Detected frequency in Hz, or null */
 	frequency: number | null;
+	clarity: number | null;
 }
 
 export type PitchCallback = (result: PitchResult) => void;
 
 let audioContext: AudioContext | null = null;
 let analyser: AnalyserNode | null = null;
+let detector: PitchDetector<Float32Array> | null = null;
 let mediaStream: MediaStream | null = null;
 let intervalId: ReturnType<typeof setInterval> | null = null;
+let inputBuffer: Float32Array | null = null;
 let callback: PitchCallback | null = null;
 let paused = false;
 
-const POLL_INTERVAL_MS = 50; // ~20 fps, plenty for pitch detection
+const POLL_INTERVAL_MS = 50;
+const MIN_CLARITY = 0.85;
 
 function getAudioContext(): AudioContext {
 	if (!audioContext) {
@@ -37,9 +34,7 @@ function getAudioContext(): AudioContext {
 	return audioContext;
 }
 
-/** Start listening for pitch from the microphone. */
 export async function startListening(onPitch: PitchCallback): Promise<void> {
-	// Clean up any existing session first
 	stopListening();
 
 	callback = onPitch;
@@ -63,49 +58,45 @@ export async function startListening(onPitch: PitchCallback): Promise<void> {
 	analyser = ctx.createAnalyser();
 	analyser.fftSize = 2048;
 	source.connect(analyser);
-	// Do NOT connect to destination — no mic feedback
+
+	detector = PitchDetector.forFloat32Array(analyser.fftSize);
+	detector.minVolumeDecibels = -50;
+	inputBuffer = new Float32Array(detector.inputLength);
 
 	intervalId = setInterval(poll, POLL_INTERVAL_MS);
 }
 
 function poll() {
-	if (!analyser || !callback) return;
-
+	if (!analyser || !callback || !detector || !inputBuffer) return;
 	if (paused) return;
 
-	// Resume AudioContext if browser suspended it
 	const ctx = getAudioContext();
 	if (ctx.state === 'suspended') {
 		ctx.resume();
 		return;
 	}
 
-	const buffer = new Float32Array(analyser.fftSize);
-	analyser.getFloatTimeDomainData(buffer);
+	analyser.getFloatTimeDomainData(inputBuffer);
+	const [pitch, clarity] = detector.findPitch(inputBuffer, ctx.sampleRate);
 
-	const frequency = detectPitch(buffer, ctx.sampleRate);
-
-	if (frequency !== null) {
-		const exactMidi = 69 + 12 * Math.log2(frequency / 440);
+	if (clarity >= MIN_CLARITY && pitch > 60 && pitch < 1200) {
+		const exactMidi = 69 + 12 * Math.log2(pitch / 440);
 		const midi = Math.round(exactMidi);
 		const cents = Math.round((exactMidi - midi) * 100);
-		callback({ midi, exactMidi, cents, frequency });
+		callback({ midi, exactMidi, cents, frequency: pitch, clarity });
 	} else {
-		callback({ midi: null, exactMidi: null, cents: null, frequency: null });
+		callback({ midi: null, exactMidi: null, cents: null, frequency: null, clarity });
 	}
 }
 
-/** Temporarily pause pitch detection (e.g., while playing reference audio). */
 export function pauseListening(): void {
 	paused = true;
 }
 
-/** Resume pitch detection after a pause. */
 export function resumeListening(): void {
 	paused = false;
 }
 
-/** Stop listening and release the microphone. */
 export function stopListening(): void {
 	if (intervalId !== null) {
 		clearInterval(intervalId);
@@ -116,11 +107,12 @@ export function stopListening(): void {
 		mediaStream = null;
 	}
 	analyser = null;
+	detector = null;
+	inputBuffer = null;
 	callback = null;
 	paused = false;
 }
 
-/** Check if the browser supports getUserMedia. */
 export function isMicSupported(): boolean {
 	return !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia);
 }

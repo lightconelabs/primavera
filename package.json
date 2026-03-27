@@ -30,6 +30,7 @@
   "dependencies": {
     "@inlang/paraglide-js": "^2.15.1",
     "abcjs": "^6.6.2",
+    "pitchy": "^4.1.0",
     "wrangler": "^4.77.0"
   }
 }
