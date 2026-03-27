@@ -56,5 +56,6 @@
 	"quiz_mic_permission": "Se necesita acceso al microfono para el modo quiz",
 	"quiz_mic_unsupported": "Tu navegador no soporta entrada de microfono",
 	"quiz_detected_note": "Escuchado: {note}",
-	"quiz_hear_note": "Escuchar nota"
+	"quiz_hear_note": "Escuchar nota",
+	"footer_hint_quiz": "Canta o toca cada nota en tu microfono. El indicador muestra que tan cerca estas."
 }

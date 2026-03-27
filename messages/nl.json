@@ -56,5 +56,6 @@
 	"quiz_mic_permission": "Microfoontoegang is nodig voor de quizmodus",
 	"quiz_mic_unsupported": "Je browser ondersteunt geen microfooninvoer",
 	"quiz_detected_note": "Gehoord: {note}",
-	"quiz_hear_note": "Beluister noot"
+	"quiz_hear_note": "Beluister noot",
+	"footer_hint_quiz": "Zing of speel elke noot in je microfoon. De meter toont hoe dichtbij je bent."
 }

@@ -3,104 +3,14 @@
 	import AppHeader from '$lib/AppHeader.svelte';
 	import ExercisePanel from '$lib/ExercisePanel.svelte';
 	import SettingsPanel from '$lib/SettingsPanel.svelte';
-	import { playNote, playSequence } from '$lib/audio';
-	import { generateExercise, type Exercise, type ExerciseSettings, DEFAULT_SETTINGS } from '$lib/music';
-	import { pauseListening, resumeListening } from '$lib/microphone';
+	import { createExercisePageController } from '$lib/exercisePageState.svelte';
 	import { m } from '$lib/paraglide/messages.js';
-	import { loadSettings, saveSettings } from '$lib/store';
 
-	let settings: ExerciseSettings = $state({ ...DEFAULT_SETTINGS });
-	let mode: 'practice' | 'quiz' = $state('practice');
-	let exercise: Exercise | null = $state(null);
-	let highlightIndex = $state(-1);
-	let isPlaying = $state(false);
-	let abortPlayback: (() => void) | null = $state(null);
+	const controller = createExercisePageController();
 
 	onMount(() => {
-		settings = loadSettings();
-		exercise = generateExercise(settings);
+		controller.init();
 	});
-
-	function regenerateExercise() {
-		saveSettings(settings);
-		exercise = generateExercise(settings);
-		highlightIndex = -1;
-		stopPlayback();
-	}
-
-	function setSharps(value: number) {
-		settings.sharps = value;
-		settings.flats = 0;
-		regenerateExercise();
-	}
-
-	function setFlats(value: number) {
-		settings.flats = value;
-		settings.sharps = 0;
-		regenerateExercise();
-	}
-
-	function resetKeySignature() {
-		settings.sharps = 0;
-		settings.flats = 0;
-		regenerateExercise();
-	}
-
-	function setMode(nextMode: 'practice' | 'quiz') {
-		mode = nextMode;
-		stopPlayback();
-		highlightIndex = -1;
-	}
-
-	async function play() {
-		if (!exercise || isPlaying) return;
-		isPlaying = true;
-
-		const seq = playSequence(
-			exercise.notes.map((note) => ({ midi: note.midi, duration: note.duration })),
-			exercise.tempo,
-			(index) => {
-				highlightIndex = index;
-			}
-		);
-
-		abortPlayback = seq.abort;
-
-		try {
-			await seq.promise;
-		} finally {
-			highlightIndex = -1;
-			isPlaying = false;
-			abortPlayback = null;
-		}
-	}
-
-	function stopPlayback() {
-		abortPlayback?.();
-		abortPlayback = null;
-		isPlaying = false;
-		highlightIndex = -1;
-	}
-
-	async function previewQuizNote(noteIndex: number) {
-		const currentExercise = exercise;
-		if (!currentExercise) return;
-
-		pauseListening();
-		try {
-			await playNote(currentExercise.notes[noteIndex].midi, 0.4);
-			await new Promise((resolve) => setTimeout(resolve, 200));
-		} finally {
-			resumeListening();
-		}
-	}
-
-	function applyTempoChange() {
-		saveSettings(settings);
-		if (exercise) {
-			exercise.tempo = settings.tempo;
-		}
-	}
 </script>
 
 <svelte:head>
@@ -117,34 +27,32 @@
 <main>
 	<AppHeader />
 
-	{#if exercise}
+	{#if controller.exercise}
 		<ExercisePanel
-			{exercise}
-			{mode}
-			{highlightIndex}
-			{isPlaying}
-			onModeChange={setMode}
-			onGenerate={regenerateExercise}
-			onPlay={play}
-			onStopPlayback={stopPlayback}
-			onQuizNoteClick={previewQuizNote}
-			onQuizNoteChange={(index) => {
-				highlightIndex = index;
-			}}
+			exercise={controller.exercise}
+			mode={controller.mode}
+			highlightIndex={controller.highlightIndex}
+			isPlaying={controller.isPlaying}
+			onModeChange={controller.setMode}
+			onGenerate={controller.regenerateExercise}
+			onPlay={controller.play}
+			onStopPlayback={controller.stopPlayback}
+			onQuizNoteClick={controller.previewQuizNote}
+			onQuizNoteChange={controller.setHighlightIndex}
 		/>
 	{/if}
 
 	<SettingsPanel
-		{settings}
-		onSetSharps={setSharps}
-		onSetFlats={setFlats}
-		onResetKey={resetKeySignature}
-		onSettingsChange={regenerateExercise}
-		onTempoChange={applyTempoChange}
+		settings={controller.settings}
+		onSetSharps={controller.setSharps}
+		onSetFlats={controller.setFlats}
+		onResetKey={controller.resetKeySignature}
+		onSettingsChange={controller.regenerateExercise}
+		onTempoChange={controller.applyTempoChange}
 	/>
 
 	<footer>
-		<p>{@html m.footer_hint()}</p>
+		<p>{@html controller.mode === 'quiz' ? m.footer_hint_quiz() : m.footer_hint()}</p>
 	</footer>
 </main>
 

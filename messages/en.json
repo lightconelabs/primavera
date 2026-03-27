@@ -56,5 +56,6 @@
 	"quiz_mic_permission": "Microphone access is needed for quiz mode",
 	"quiz_mic_unsupported": "Your browser does not support microphone input",
 	"quiz_detected_note": "Heard: {note}",
-	"quiz_hear_note": "Hear note"
+	"quiz_hear_note": "Hear note",
+	"footer_hint_quiz": "Sing or play each note into your microphone. The gauge shows how close you are."
 }

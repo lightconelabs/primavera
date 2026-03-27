@@ -176,6 +176,10 @@
 	}
 
 	.btn {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		min-width: 11rem;
 		padding: 0.5rem 1.3rem;
 		border: none;
 		border-radius: 8px;
@@ -243,8 +247,6 @@
 		}
 
 		.btn {
-			flex: 1;
-			min-width: 0;
 			text-align: center;
 		}
 	}

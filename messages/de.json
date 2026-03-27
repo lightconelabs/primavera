@@ -56,5 +56,6 @@
 	"quiz_mic_permission": "Mikrofonzugriff wird fuer den Quizmodus benoetigt",
 	"quiz_mic_unsupported": "Ihr Browser unterstuetzt keine Mikrofoneingabe",
 	"quiz_detected_note": "Gehoert: {note}",
-	"quiz_hear_note": "Note anhoeren"
+	"quiz_hear_note": "Note anhoeren",
+	"footer_hint_quiz": "Singe oder spiele jede Note in dein Mikrofon. Die Anzeige zeigt, wie nah du bist."
 }

@@ -56,5 +56,6 @@
 	"quiz_mic_permission": "L'acces au microphone est necessaire pour le mode quiz",
 	"quiz_mic_unsupported": "Votre navigateur ne prend pas en charge l'entree microphone",
 	"quiz_detected_note": "Entendu : {note}",
-	"quiz_hear_note": "Ecouter la note"
+	"quiz_hear_note": "Ecouter la note",
+	"footer_hint_quiz": "Chantez ou jouez chaque note dans votre microphone. La jauge indique votre justesse."
 }
