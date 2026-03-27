@@ -19,4 +19,4 @@ I built Primavera while studying at SLAC Leuven. Preparing for sight-reading and
 
 Primavera runs entirely in your browser. There is no backend, no account, no tracking. Pitch detection happens locally using the Web Audio API — your audio never leaves your device.
 
-Free to use at [primavera.lightcone.be](https://primavera.lightcone.be.
+Free to use at [primavera.lightcone.be](https://primavera.lightcone.be).
