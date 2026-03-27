@@ -238,59 +238,47 @@
 	});
 </script>
 
-<div class="quiz-mode">
-	{#if errorMessage}
-		<p class="quiz-error">{errorMessage}</p>
-	{/if}
+{#if errorMessage}
+	<p class="quiz-error">{errorMessage}</p>
+{/if}
 
-	{#if !active && !completed}
-		<button class="start-btn" onclick={start}>
-			<svg class="start-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="22"/></svg>
-			{m.quiz_start()}
-		</button>
-	{:else if active && !completed}
-		<div class="quiz-live">
-			<!-- Top row: progress + action icons -->
-			<div class="topbar">
-				<span class="progress">{score}<span class="dim">/</span>{exercise.notes.length}</span>
-				{#if streak > 1}<span class="streak">{streak}x</span>{/if}
-				<span class="spacer"></span>
-				<button class="icon-btn" onclick={hearCurrentNote} title={m.quiz_hear_note()}>
-					<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
-				</button>
-				<button class="icon-btn danger" onclick={stop} title={m.quiz_stop()}>
-					<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="6" width="12" height="12" rx="1"/></svg>
-				</button>
-			</div>
-
-			<!-- Gauge: the hero -->
-			<div class="gauge">
-				<div class="gauge-bar">
-					<div class="gauge-dot" class:tuned={Math.abs(gaugeOffset) < 0.15} class:err={feedback === 'wrong'} style="left: {50 + gaugeOffset * 45}%"></div>
-					<div class="gauge-mid"></div>
-				</div>
-				<span class="gauge-note" class:correct={feedback === 'correct'} class:err={feedback === 'wrong'}>
-					{exercise.notes[currentIndex]?.name ?? '-'}
-				</span>
-			</div>
+{#if !active && !completed}
+	<button class="start-btn" onclick={start}>
+		<svg class="start-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="22"/></svg>
+		{m.quiz_start()}
+	</button>
+{:else if active && !completed}
+	<div class="quiz-live">
+		<div class="topbar">
+			<span class="progress">{score}<span class="dim">/</span>{exercise.notes.length}</span>
+			{#if streak > 1}<span class="streak">{streak}x</span>{/if}
+			<span class="spacer"></span>
+			<button class="icon-btn" onclick={hearCurrentNote} title={m.quiz_hear_note()}>
+				<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
+			</button>
+			<button class="icon-btn danger" onclick={stop} title={m.quiz_stop()}>
+				<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="6" width="12" height="12" rx="1"/></svg>
+			</button>
 		</div>
-	{:else if completed}
-		<div class="done">
-			<span class="done-score">{score}<span class="dim">/</span>{exercise.notes.length}</span>
-			<p class="done-msg">{m.quiz_complete()}</p>
-			<button class="start-btn" onclick={start}>{m.quiz_start()}</button>
+		<div class="gauge">
+			<div class="gauge-bar">
+				<div class="gauge-dot" class:tuned={Math.abs(gaugeOffset) < 0.15} class:err={feedback === 'wrong'} style="left: {50 + gaugeOffset * 45}%"></div>
+				<div class="gauge-mid"></div>
+			</div>
+			<span class="gauge-note" class:correct={feedback === 'correct'} class:err={feedback === 'wrong'}>
+				{exercise.notes[currentIndex]?.name ?? '-'}
+			</span>
 		</div>
-	{/if}
-</div>
+	</div>
+{:else if completed}
+	<div class="done">
+		<span class="done-score">{score}<span class="dim">/</span>{exercise.notes.length}</span>
+		<p class="done-msg">{m.quiz_complete()}</p>
+		<button class="start-btn" onclick={start}>{m.quiz_start()}</button>
+	</div>
+{/if}
 
 <style>
-	.quiz-mode {
-		display: flex;
-		flex-direction: column;
-		align-items: center;
-		padding: 0.75rem 1.25rem 1rem;
-	}
-
 	.quiz-error {
 		color: #b33326;
 		font-size: 0.8rem;
@@ -330,8 +318,9 @@
 	/* ---- Live quiz ---- */
 
 	.quiz-live, .done {
-		width: 100%;
+		flex-basis: 100%;
 		max-width: 300px;
+		margin: 0 auto;
 		display: flex;
 		flex-direction: column;
 		align-items: center;
