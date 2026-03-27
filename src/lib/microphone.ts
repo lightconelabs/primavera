@@ -1,6 +1,9 @@
 /**
  * Microphone input and real-time pitch detection.
  * Connects getUserMedia to an AnalyserNode and polls for pitch using YIN.
+ *
+ * Uses setInterval instead of requestAnimationFrame for reliability —
+ * RAF gets throttled/paused when the tab is inactive.
  */
 
 import { detectPitch } from './pitch';
@@ -21,9 +24,11 @@ export type PitchCallback = (result: PitchResult) => void;
 let audioContext: AudioContext | null = null;
 let analyser: AnalyserNode | null = null;
 let mediaStream: MediaStream | null = null;
-let rafId: number | null = null;
+let intervalId: ReturnType<typeof setInterval> | null = null;
 let callback: PitchCallback | null = null;
 let paused = false;
+
+const POLL_INTERVAL_MS = 50; // ~20 fps, plenty for pitch detection
 
 function getAudioContext(): AudioContext {
 	if (!audioContext) {
@@ -34,6 +39,9 @@ function getAudioContext(): AudioContext {
 
 /** Start listening for pitch from the microphone. */
 export async function startListening(onPitch: PitchCallback): Promise<void> {
+	// Clean up any existing session first
+	stopListening();
+
 	callback = onPitch;
 	paused = false;
 
@@ -57,30 +65,34 @@ export async function startListening(onPitch: PitchCallback): Promise<void> {
 	source.connect(analyser);
 	// Do NOT connect to destination — no mic feedback
 
-	poll();
+	intervalId = setInterval(poll, POLL_INTERVAL_MS);
 }
 
 function poll() {
 	if (!analyser || !callback) return;
 
-	if (!paused) {
-		const buffer = new Float32Array(analyser.fftSize);
-		analyser.getFloatTimeDomainData(buffer);
+	if (paused) return;
 
-		const ctx = getAudioContext();
-		const frequency = detectPitch(buffer, ctx.sampleRate);
-
-		if (frequency !== null) {
-			const exactMidi = 69 + 12 * Math.log2(frequency / 440);
-			const midi = Math.round(exactMidi);
-			const cents = Math.round((exactMidi - midi) * 100);
-			callback({ midi, exactMidi, cents, frequency });
-		} else {
-			callback({ midi: null, exactMidi: null, cents: null, frequency: null });
-		}
+	// Resume AudioContext if browser suspended it
+	const ctx = getAudioContext();
+	if (ctx.state === 'suspended') {
+		ctx.resume();
+		return;
 	}
 
-	rafId = requestAnimationFrame(poll);
+	const buffer = new Float32Array(analyser.fftSize);
+	analyser.getFloatTimeDomainData(buffer);
+
+	const frequency = detectPitch(buffer, ctx.sampleRate);
+
+	if (frequency !== null) {
+		const exactMidi = 69 + 12 * Math.log2(frequency / 440);
+		const midi = Math.round(exactMidi);
+		const cents = Math.round((exactMidi - midi) * 100);
+		callback({ midi, exactMidi, cents, frequency });
+	} else {
+		callback({ midi: null, exactMidi: null, cents: null, frequency: null });
+	}
 }
 
 /** Temporarily pause pitch detection (e.g., while playing reference audio). */
@@ -95,9 +107,9 @@ export function resumeListening(): void {
 
 /** Stop listening and release the microphone. */
 export function stopListening(): void {
-	if (rafId !== null) {
-		cancelAnimationFrame(rafId);
-		rafId = null;
+	if (intervalId !== null) {
+		clearInterval(intervalId);
+		intervalId = null;
 	}
 	if (mediaStream) {
 		mediaStream.getTracks().forEach((track) => track.stop());
