@@ -58,7 +58,7 @@ export interface ExerciseSettings {
 export const DEFAULT_SETTINGS: ExerciseSettings = {
 	sharps: 0,
 	flats: 0,
-	maxInterval: 5,
+	maxInterval: 3,
 	noteCount: 16,
 	tempo: 80
 };

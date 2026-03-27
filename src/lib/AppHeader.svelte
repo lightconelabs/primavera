@@ -47,6 +47,7 @@
 		height: 40px;
 		image-rendering: pixelated;
 		flex-shrink: 0;
+		display: block;
 	}
 
 	.subtitle {
@@ -54,7 +55,9 @@
 		color: #9a8e82;
 		font-size: 0.78rem;
 		font-weight: 400;
+		line-height: 1;
 		letter-spacing: 0.01em;
+		align-self: center;
 	}
 
 	.lang-switcher {

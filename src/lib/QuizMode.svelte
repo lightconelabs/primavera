@@ -11,9 +11,17 @@
 		exercise: Exercise;
 		onComplete: (score: number) => void;
 		onNoteChange: (index: number) => void;
+		active?: boolean;
+		showStartButton?: boolean;
 	}
 
-	let { exercise, onComplete, onNoteChange }: Props = $props();
+	let {
+		exercise,
+		onComplete,
+		onNoteChange,
+		active = $bindable(false),
+		showStartButton = true
+	}: Props = $props();
 
 	const CHROMATIC_TO_NAME: NoteName[] = ['C', 'C', 'D', 'D', 'E', 'F', 'F', 'G', 'G', 'A', 'A', 'B'];
 	let advanceTimeoutId: ReturnType<typeof setTimeout> | null = null;
@@ -45,7 +53,6 @@
 	}
 
 	// Quiz state
-	let active = $state(false);
 	let currentIndex = $state(0);
 	let score = $state(0);
 	let streak = $state(0);
@@ -236,6 +243,10 @@
 	onDestroy(() => {
 		stop();
 	});
+
+	export function startQuiz() {
+		return start();
+	}
 </script>
 
 <div class="quiz-mode">
@@ -244,10 +255,12 @@
 	{/if}
 
 	{#if !active && !completed}
+		{#if showStartButton}
 		<button class="start-btn" onclick={start}>
 			<svg class="start-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="22"/></svg>
 			{m.quiz_start()}
 		</button>
+		{/if}
 	{:else if active && !completed}
 		<div class="quiz-live">
 			<div class="topbar">
@@ -275,7 +288,9 @@
 		<div class="done">
 			<span class="done-score">{score}<span class="dim">/</span>{exercise.notes.length}</span>
 			<p class="done-msg">{m.quiz_complete()}</p>
-			<button class="start-btn" onclick={start}>{m.quiz_start()}</button>
+			{#if showStartButton}
+				<button class="start-btn" onclick={start}>{m.quiz_start()}</button>
+			{/if}
 		</div>
 	{/if}
 </div>
@@ -288,6 +303,10 @@
 		align-items: center;
 		gap: 0.6rem;
 		padding: 0.75rem 1rem 1rem;
+	}
+
+	.quiz-mode:not(:has(*)) {
+		padding: 0;
 	}
 
 	.quiz-error {

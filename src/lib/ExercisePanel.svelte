@@ -29,6 +29,9 @@
 		onQuizNoteClick,
 		onQuizNoteChange
 	}: Props = $props();
+
+	let quizModeRef = $state<{ startQuiz: () => Promise<void> } | null>(null);
+	let quizActive = $state(false);
 </script>
 
 <section class="sheet-music">
@@ -66,6 +69,12 @@
 		/>
 	</div>
 
+	{#if mode === 'quiz'}
+		<p class="mode-hint">{@html m.footer_hint_quiz()}</p>
+	{:else}
+		<p class="mode-hint">{@html m.footer_hint()}</p>
+	{/if}
+
 	<div class="action-bar">
 		<button class="btn primary" onclick={onGenerate}>
 			{m.new_exercise()}
@@ -81,14 +90,26 @@
 					&#9654; {m.play()}
 				</button>
 			{/if}
-		{:else}
+		{:else if !quizActive}
+			<button class="btn secondary" onclick={() => quizModeRef?.startQuiz()}>
+				<svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="18" height="18"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="22"/></svg>
+				{m.quiz_start()}
+			</button>
+		{/if}
+	</div>
+
+	{#if mode === 'quiz'}
+		{#key exercise}
 			<QuizMode
+				bind:this={quizModeRef}
+				bind:active={quizActive}
 				{exercise}
+				showStartButton={false}
 				onComplete={() => {}}
 				onNoteChange={onQuizNoteChange}
 			/>
-		{/if}
-	</div>
+		{/key}
+	{/if}
 </section>
 
 <style>
@@ -115,15 +136,17 @@
 		margin: 0.75rem auto 0;
 		background: rgba(58, 122, 76, 0.05);
 		border-radius: 10px;
-		padding: 3px;
+		padding: 4px;
 		width: fit-content;
 		gap: 0;
 	}
 
 	.toggle-btn {
+		flex: 1 1 0;
 		position: relative;
 		z-index: 1;
-		padding: 0.45rem 1.2rem;
+		min-width: 8.5rem;
+		padding: 0.5rem 1.35rem;
 		border: none;
 		background: transparent;
 		font-family: 'DM Sans', sans-serif;
@@ -151,10 +174,10 @@
 
 	.toggle-slider {
 		position: absolute;
-		top: 3px;
-		left: 3px;
-		width: calc(50% - 3px);
-		height: calc(100% - 6px);
+		top: 4px;
+		left: 4px;
+		width: calc(50% - 4px);
+		height: calc(100% - 8px);
 		background: #fff;
 		border-radius: 8px;
 		box-shadow: 0 1px 4px rgba(58, 122, 76, 0.1);
@@ -166,12 +189,23 @@
 		transform: translateX(100%);
 	}
 
+	.mode-hint {
+		text-align: center;
+		font-size: 0.75rem;
+		color: #b0a496;
+		margin: 0;
+		padding: 0.15rem 1.25rem 0.5rem;
+	}
+
 	.action-bar {
 		display: flex;
 		flex-wrap: wrap;
+		align-items: center;
 		gap: 0.5rem;
 		justify-content: center;
+		height: 4.75rem;
 		padding: 0.75rem 1.25rem 1rem;
+		box-sizing: border-box;
 		border-top: 1px solid #f0ebe3;
 	}
 
@@ -180,7 +214,8 @@
 		align-items: center;
 		justify-content: center;
 		min-width: 11rem;
-		padding: 0.5rem 1.3rem;
+		height: 2.25rem;
+		padding: 0 1.3rem;
 		border: none;
 		border-radius: 8px;
 		font-family: 'DM Sans', sans-serif;
@@ -189,10 +224,17 @@
 		cursor: pointer;
 		transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 		letter-spacing: 0.01em;
+		gap: 0.35rem;
 	}
 
 	.btn:active {
 		transform: scale(0.97);
+	}
+
+	.btn :global(svg.btn-icon) {
+		width: 1em;
+		height: 1em;
+		flex-shrink: 0;
 	}
 
 	.btn.primary {
@@ -242,6 +284,8 @@
 		}
 
 		.action-bar {
+			height: auto;
+			min-height: 4.75rem;
 			padding: 0.65rem 0.75rem 0.85rem;
 			flex-wrap: wrap;
 		}

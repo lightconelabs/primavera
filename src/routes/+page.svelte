@@ -51,9 +51,6 @@
 		onTempoChange={controller.applyTempoChange}
 	/>
 
-	<footer>
-		<p>{@html controller.mode === 'quiz' ? m.footer_hint_quiz() : m.footer_hint()}</p>
-	</footer>
 </main>
 
 <style>
@@ -72,19 +69,7 @@
 		padding: 1.5rem 1.25rem 2rem;
 	}
 
-	footer {
-		text-align: center;
-		font-size: 0.72rem;
-		color: #c4b8aa;
-		padding-top: 0.5rem;
-	}
-
-	footer :global(a) {
-		color: #9a8e82;
-		text-decoration-color: #ddd5c9;
-	}
-
-	@media (max-width: 600px) {
+@media (max-width: 600px) {
 		main {
 			padding: 1rem 0.75rem 1.5rem;
 		}
