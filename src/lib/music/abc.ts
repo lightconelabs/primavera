@@ -2,8 +2,8 @@
  * Convert Primavera Exercise data to ABC notation strings for abcjs rendering.
  */
 
-import type { Exercise, Note, NoteName } from './music';
-import { getKeySignatureNotes } from './music';
+import type { Exercise, Note, NoteName } from './model';
+import { getKeySignatureNotes } from './model';
 
 /** Map sharps count to ABC key name */
 const SHARP_KEYS: Record<number, string> = {

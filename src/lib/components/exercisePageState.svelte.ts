@@ -1,7 +1,7 @@
-import { playNote, playSequence } from '$lib/audio';
-import { pauseListening, resumeListening } from '$lib/microphone';
-import { generateExercise, type Exercise, type ExerciseSettings, DEFAULT_SETTINGS } from '$lib/music';
-import { loadSettings, saveSettings } from '$lib/store';
+import { playNote, playSequence } from '$lib/audio/audio';
+import { pauseListening, resumeListening } from '$lib/audio/microphone';
+import { generateExercise, type Exercise, type ExerciseSettings, DEFAULT_SETTINGS } from '$lib/music/model';
+import { loadSettings, saveSettings } from '$lib/state/store';
 
 type Mode = 'practice' | 'quiz';
 

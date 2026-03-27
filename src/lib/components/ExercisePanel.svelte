@@ -1,8 +1,8 @@
 <script lang="ts">
 	import { m } from '$lib/paraglide/messages.js';
-	import type { Exercise } from '$lib/music';
-	import SheetMusic from '$lib/SheetMusic.svelte';
-	import QuizMode from '$lib/QuizMode.svelte';
+	import type { Exercise } from '$lib/music/model';
+	import SheetMusic from '$lib/components/SheetMusic.svelte';
+	import QuizMode from '$lib/quiz/QuizMode.svelte';
 
 	interface Props {
 		exercise: Exercise;

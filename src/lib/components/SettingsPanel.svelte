@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { m } from '$lib/paraglide/messages.js';
-	import type { ExerciseSettings } from '$lib/music';
-	import { intervalLabels, keySignatureLabel } from '$lib/exerciseLabels';
+	import type { ExerciseSettings } from '$lib/music/model';
+	import { intervalLabels, keySignatureLabel } from '$lib/state/exerciseLabels';
 
 	interface Props {
 		settings: ExerciseSettings;

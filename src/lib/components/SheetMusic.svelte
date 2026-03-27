@@ -1,9 +1,9 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { m } from '$lib/paraglide/messages.js';
-	import type { Exercise } from './music';
-	import { exerciseToAbc } from './abc';
-	import { playNote } from './audio';
+	import type { Exercise } from '$lib/music/model';
+	import { exerciseToAbc } from '$lib/music/abc';
+	import { playNote } from '$lib/audio/audio';
 
 	interface Props {
 		exercise: Exercise;

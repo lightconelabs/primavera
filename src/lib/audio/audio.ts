@@ -2,7 +2,7 @@
  * Web Audio API engine for playing notes using synthesized piano-like tones.
  */
 
-import { midiToFrequency } from './music';
+import { midiToFrequency } from '$lib/music/model';
 
 let audioContext: AudioContext | null = null;
 function getAudioContext(): AudioContext {

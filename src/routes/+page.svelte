@@ -1,9 +1,9 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import AppHeader from '$lib/AppHeader.svelte';
-	import ExercisePanel from '$lib/ExercisePanel.svelte';
-	import SettingsPanel from '$lib/SettingsPanel.svelte';
-	import { createExercisePageController } from '$lib/exercisePageState.svelte';
+	import AppHeader from '$lib/components/AppHeader.svelte';
+	import ExercisePanel from '$lib/components/ExercisePanel.svelte';
+	import SettingsPanel from '$lib/components/SettingsPanel.svelte';
+	import { createExercisePageController } from '$lib/components/exercisePageState.svelte';
 	import { m } from '$lib/paraglide/messages.js';
 
 	const controller = createExercisePageController();

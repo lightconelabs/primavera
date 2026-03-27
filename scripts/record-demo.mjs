@@ -115,8 +115,7 @@ await quizTab.click();
 await page.waitForTimeout(1500);
 
 // Show the Start Quiz button
-const startQuizBtn = page.locator('.quiz-btn.quiz-start');
-await startQuizBtn.waitFor({ state: 'visible' });
+await page.getByRole('button', { name: 'Start Quiz' }).waitFor({ state: 'visible' });
 await page.waitForTimeout(2000);
 
 // --- Scene 7: Switch back to Practice and play the exercise ---

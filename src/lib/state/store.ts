@@ -2,7 +2,7 @@
  * Persistent settings store using localStorage.
  */
 
-import { DEFAULT_SETTINGS, type ExerciseSettings } from './music';
+import { DEFAULT_SETTINGS, type ExerciseSettings } from '$lib/music/model';
 
 const STORAGE_KEY = 'primavera-settings';
 
