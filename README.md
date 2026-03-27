@@ -1,37 +1,22 @@
 
 ![Primavera logo](assets/primavera-logo.png)
 
-Primavera is an online tool for practicing sight-reading.
+Primavera helps music students practice sight-reading and singing with real-time feedback.
 
 ![Primavera demo](assets/demo.gif)
 
-## Features
+## Why
 
-- Randomly generated sight-reading exercises rendered as SVG sheet music
-- Configurable key signatures (0–7 sharps or flats)
-- Adjustable maximum interval between consecutive notes
-- Hover over notes to hear them individually
-- Play button to hear the full exercise with note highlighting
-- Adjustable tempo and exercise length
-- All settings persist in browser localStorage — no login required
+I built Primavera while studying at SLAC Leuven. Preparing for sight-reading and singing tests meant either finding a patient practice partner or stumbling through exercises with no way to know if I was hitting the right notes. I wished something like this existed — so I made it.
 
-## Tech Stack
+## How it works
 
-- **SvelteKit 2** with Svelte 5
-- **Cloudflare Workers** via `@sveltejs/adapter-cloudflare`
-- **Web Audio API** for synthesized note playback
-- **TypeScript** throughout
+**Practice mode** generates random exercises as sheet music. Click any note to hear it, or play the full exercise with note-by-note highlighting. Key signature, interval range, tempo, and length are all adjustable.
 
-## Development
+**Quiz mode** listens through your microphone and detects the pitch you sing or play. A tuning gauge shows how close you are to the expected note, and the exercise advances as you get each one right.
 
-```bash
-npm install
-npm run dev
-```
+## Privacy
 
-## Build & Deploy
+Primavera runs entirely in your browser. There is no backend, no account, no tracking. Pitch detection happens locally using the Web Audio API — your audio never leaves your device.
 
-```bash
-npm run build
-npx wrangler deploy
-```
+Free to use at [primavera.lightcone.be](https://primavera.lightcone.be.
