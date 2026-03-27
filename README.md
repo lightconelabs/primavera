@@ -11,9 +11,9 @@ I built Primavera while studying at SLAC Leuven. Preparing for sight-reading and
 
 ## How it works
 
-**Practice mode** generates random exercises as sheet music. Click any note to hear it, or play the full exercise with note-by-note highlighting. Key signature, interval range, tempo, and length are all adjustable.
+**Practice mode** generates random exercises rendered as sheet music by [abcjs](https://www.abcjs.net/). Click any note to hear it, or play the full exercise with note-by-note highlighting. Key signature, interval range, tempo, and length are all adjustable.
 
-**Quiz mode** listens through your microphone and detects the pitch you sing or play. A tuning gauge shows how close you are to the expected note, and the exercise advances as you get each one right.
+**Quiz mode** listens through your microphone and uses [pitchy](https://github.com/ianprime0509/pitchy) for real-time pitch detection. A tuning gauge shows how close you are to the expected note, and the exercise advances as you get each one right.
 
 ## Privacy
 
